@@ -6,7 +6,7 @@ THIS FORK HAS:
 
 THIS FORK STILL DOESN'T HAVE:
 ===
-* proper deleting zip & unzipped content on package replacing and xblock deletion
+* proper deleting zip & unzipped content on ~~package replacing and~~ xblock deletion
 * localization working as it should   
 
 edx_xblock_scorm
