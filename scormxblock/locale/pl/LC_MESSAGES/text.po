@@ -1,0 +1,86 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-05-31 16:02-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: es_419\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: scormxblock.py:39
+msgid "Display name for this module"
+msgstr "Nazwa tego elementu"
+
+#: scormxblock.py:44
+msgid "Upload scorm file"
+msgstr "Plik SCORM"
+
+#: scormxblock.py:57
+msgid "not attempted"
+msgstr "nie uruchomiony"
+
+#: scormxblock.py:77
+msgid "Select False if this component will not receive a numerical score from the Scorm"
+msgstr "Wybierz Nie, jeśli ten pakiet SCORM nie będzie wysyłał wartości numerycznych"
+
+#: scormxblock.py:86
+msgid "Display Width (px)"
+msgstr "Szerokość (px)"
+
+#: scormxblock.py:87
+msgid "Width of iframe, if empty, the default 100%"
+msgstr "Szerokość iframe (lub popupa), jeśli pozostanie puste, wartość domyślna to 100%"
+
+#: scormxblock.py:91
+msgid "Display Height (px)"
+msgstr "Wysokość (px)"
+
+#: scormxblock.py:92
+msgid "Height of iframe"
+msgstr "Wysokość iframe (lub popupa), jeśli pozostanie puste, wartość domyślna to 450px"
+
+#: static/html/author_view.html:3
+msgid "Look in LMS"
+msgstr "Obejrzyj w LMS"
+
+msgid "Popup"
+msgstr ""
+
+msgid "Open in a new popup window, or an iframe."
+msgstr "Czy otwierać w popupie, czy raczej w iframe."
+
+msgid "Popup on entry"
+msgstr "Otwórz na wejściu"
+
+msgid "Should the popup window show on load (instead of on button click)?"
+msgstr "Czy okienko popup powinno otwierać się po załadowaniu strony (zamiast tylko po kliknięciu na przycisk)?"
+
+msgid ""
+"We launched your course in a new window but if you do not see it, a popup "
+"blocker may be preventing it from opening. Please disable popup blockers for "
+"this site."
+msgstr ""
+"Kurs został otwarty w nowym oknie. Jeśli tak się nie stało, winna może być "
+"blokada wyskakujących okienek. Zezwól na wyskakujące okienka z tej strony."
+
+msgid "Open in popup"
+msgstr "Otwórz w nowym oknie"
+
+msgid "Open here"
+msgstr "Otwórz tutaj"
+
+msgid "Allow open in place"
+msgstr "Otwarcie w miejscu"
+
+msgid "Show button for opening not-in-popup."
+msgstr "Pokaż przycisk pozwalający na otwarcie nie-w-popupie."

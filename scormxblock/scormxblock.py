@@ -96,6 +96,24 @@ class ScormXBlock(XBlock):
         default=450,
         scope=Scope.settings
     )
+    popup = Boolean(
+        display_name =_("Popup"),
+        help=_("Open in a new popup window, or an iframe."),
+        default=False,
+        scope=Scope.settings
+    )
+    autoopen = Boolean(
+        display_name =_("Popup on entry"),
+        help=_("Should the popup window show on load (instead of on button click)."),
+        default=False,
+        scope=Scope.settings
+    )
+    allowopeninplace = Boolean(
+        display_name =_("Allow open in place"),
+        help=_("Show button for opening not-in-popup."),
+        default=False,
+        scope=Scope.settings
+    )
 
     has_author_view = True
 
@@ -113,6 +131,7 @@ class ScormXBlock(XBlock):
         settings = {
             'version_scorm': self.version_scorm
         }
+        settings.update(self.get_settings_student())
         frag.initialize_js('ScormXBlock', json_args=settings)
         return frag
 
@@ -136,6 +155,10 @@ class ScormXBlock(XBlock):
         self.width = request.params['width']
         self.height = request.params['height']
         self.has_score = request.params['has_score']
+        self.popup = request.params['popup']
+        self.autoopen = request.params['autoopen']
+        self.allowopeninplace = request.params['allowopeninplace']
+        
         self.icon_class = 'problem' if self.has_score == 'True' else 'video'
 
         if hasattr(request.params['file'], 'file'):
@@ -252,6 +275,9 @@ class ScormXBlock(XBlock):
             'field_has_score': self.fields['has_score'],
             'field_width': self.fields['width'],
             'field_height': self.fields['height'],
+            'popup': self.fields['popup'],
+            'autoopen': self.fields['autoopen'],
+            'allowopeninplace': self.fields['allowopeninplace'],
             'scorm_xblock': self
         }
 
@@ -269,6 +295,28 @@ class ScormXBlock(XBlock):
             'scorm_file_path': scorm_file_path,
             'completion_status': self.get_completion_status(),
             'scorm_xblock': self
+        }
+
+    def get_settings_student(self):
+        scorm_file_path = ''
+        if self.scorm_file:
+            scheme = 'https' if settings.HTTPS == 'on' else 'http'
+            scorm_file_path = '{}://{}{}'.format(
+                scheme,
+                configuration_helpers.get_value('site_domain', settings.ENV_TOKENS.get('LMS_BASE')),
+                self.scorm_file
+            )
+        return {
+            'scorm_file_path': scorm_file_path,
+            'completion_status': self.get_completion_status(),
+            'scorm_xblock': {
+                'display_name': self.display_name,
+                'width': self.width,
+                'height': self.height,
+                'popup': self.popup,
+                'autoopen': self.autoopen,
+                'allowopeninplace': self.allowopeninplace
+            }
         }
 
     def render_template(self, template_path, context):
