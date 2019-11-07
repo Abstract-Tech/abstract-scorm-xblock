@@ -164,10 +164,11 @@ class ScormXBlock(XBlock):
         if hasattr(request.params['file'], 'file'):
             scorm_file = request.params['file'].file
 
-            old_zip = self.scorm_file_meta['path']
-            if default_storage.exists(old_zip):
-                log.info('Removing previously uploaded "{}"'.format(old_zip))
-                default_storage.delete(old_zip)
+            if(self.scorm_file):
+                old_zip = self.scorm_file_meta['path']
+                if default_storage.exists(old_zip):
+                    log.info('Removing previously uploaded "{}"'.format(old_zip))
+                    default_storage.delete(old_zip)
 
             # First, save scorm file in the storage for mobile clients
             self.scorm_file_meta['sha1'] = self.get_sha1(scorm_file)
