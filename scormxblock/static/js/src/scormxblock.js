@@ -105,9 +105,10 @@ function ScormXBlock(runtime, element, settings) {
     let width = settings.scorm_xblock.width ? settings.scorm_xblock.width : screen.height;
     let height = settings.scorm_xblock.height;
 
-    let innerIframe = '<style>* { margin: 0; padding: 0; border: 0; }</style>' +
+    let innerIframe = '<html><head><style>body, html {width: 100%; height: 100%; margin: 0; padding: 0}</style></head><body>' +
       '<iframe class="scorm_object" src="' + settings.scorm_file_path + '" width="100%" height="100%" ' +
-      'allow="fullscreen" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>';
+      'allow="fullscreen" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>' +
+      '</html></body>';
     let outerIframe = '<iframe class="scorm-iframe scorm_object" ' + 
       'width="' + (settings.scorm_xblock.width ? settings.scorm_xblock.width : '100%') + '" ' +
       'height="' + settings.scorm_xblock.height + '" ' +
@@ -119,14 +120,70 @@ function ScormXBlock(runtime, element, settings) {
     //  API_1484_11 = new SCORM_2004_API();
     //}
     var popupWindow = null;
+    
+    function GoInFullscreen(element) {
+      var p;
+      if(element.requestFullscreen)
+        p = element.requestFullscreen();
+      else if(element.mozRequestFullScreen)
+        p = element.mozRequestFullScreen();
+      else if(element.webkitRequestFullscreen)
+        p = element.webkitRequestFullscreen();
+      else if(element.msRequestFullscreen)
+        p = element.msRequestFullscreen();
+      else 
+        p = Promise.reject();
+      return p;
+    }
+
+    function GoOutFullscreen(element) {
+      var p;
+      if(element.ownerDocument.exitFullscreen)
+        p = element.ownerDocument.exitFullscreen();
+      else if(element.ownerDocument.mozCancelFullScreen)
+        p = element.ownerDocument.mozCancelFullScreen();
+      else if(element.ownerDocument.webkitExitFullscreen)
+        p = element.ownerDocument.webkitExitFullscreen();
+      else if(element.ownerDocument.msExitFullscreen)
+        p = element.ownerDocument.msExitFullscreen();
+      else 
+        p = Promise.reject();
+      return p;
+    }
+
+    function detachHandler(element) {
+      element.ownerDocument.removeEventListener('click', handleClick, true);
+    }
+
+    function handleClick(event) {
+      // console.log(event);
+      // console.log(event.target);
+      // console.log(event.currentTarget);
+      // console.log(event.currentTarget.body);
+      let element = event.currentTarget.body;
+      GoInFullscreen(element)
+      .then(function() { GoOutFullscreen(element); })
+      .then(function() { detachHandler(element); })
+      .catch(function () { detachHandler(element); });
+    }
+
     function showPopup(params) {
-      if( popupWindow == null || popupWindow.closed){
+      if(popupWindow == null || popupWindow.closed) {
         popupWindow = window.open('', settings.scorm_xblock.display_name, params);
         if(popupWindow) {
           popupWindow.document.open();
           popupWindow.API = popupWindow.API_1484_11 = GetAPI();
           popupWindow.document.write(innerIframe);
           popupWindow.document.close();
+          setTimeout(function() {
+            let i = popupWindow.frames[0];
+            //console.log($.browser.mozilla);
+            //console.log(i.mejs);
+            //console.log(Object.keys(i.mejs.players).length);
+            if ($.browser.mozilla && i.mejs && Object.keys(i.mejs.players).length > 0) {
+              i.document.addEventListener('click', handleClick, true);
+            }
+          }, 1000);
         }
         $('.scorm_popup_warning', element).show();
       } else {
