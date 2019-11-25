@@ -105,13 +105,13 @@ function ScormXBlock(runtime, element, settings) {
     let width = settings.scorm_xblock.width ? settings.scorm_xblock.width : screen.height;
     let height = settings.scorm_xblock.height;
 
-    let innerIframe = '<html><head><style>body, html {width: 100%; height: 100%; margin: 0; padding: 0}</style></head><body>' +
+    let innerIframe = '<!DOCTYPE html><html><head><style>body, html, * {width: 100%; height: 100%; margin: 0; padding: 0; border: 0;}</style></head><body>' +
       '<iframe class="scorm_object" src="' + settings.scorm_file_path + '" width="100%" height="100%" ' +
       'allow="fullscreen" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>' +
       '</html></body>';
     let outerIframe = '<iframe class="scorm-iframe scorm_object" ' + 
-      'width="' + (settings.scorm_xblock.width ? settings.scorm_xblock.width : '100%') + '" ' +
-      'height="' + settings.scorm_xblock.height + '" ' +
+      'width="' + (settings.scorm_xblock.width ? (settings.scorm_xblock.width + 5) : '100%') + '" ' +
+      'height="' + (settings.scorm_xblock.height  + 5) + '" ' +
       'allow="fullscreen" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>'
 
     //if (settings.version_scorm == 'SCORM_12') {
@@ -169,6 +169,7 @@ function ScormXBlock(runtime, element, settings) {
 
     function showPopup(params) {
       if(popupWindow == null || popupWindow.closed) {
+        console.log(params);
         popupWindow = window.open('', settings.scorm_xblock.display_name, params);
         if(popupWindow) {
           popupWindow.document.open();
@@ -200,7 +201,7 @@ function ScormXBlock(runtime, element, settings) {
       iframe.document.write(innerIframe);
       iframe.document.close();
     }
-    var params = 'width='+width+', height='+height+', top='+((screen.height-height)/2)+',left='+((screen.width-width)/2)+', resizable=yes, scrollbars=no, status=yes'
+    var params = 'width='+(width+5)+'px,height='+(height+5)+'px,top='+((screen.height-height)/2)+',left='+((screen.width-width)/2)+',resizable=yes,scrollbars=no,status=yes'
     if (settings.scorm_xblock.popup && settings.scorm_xblock.autoopen){
       showPopup(params);
     } else if (!settings.scorm_xblock.popup) {
