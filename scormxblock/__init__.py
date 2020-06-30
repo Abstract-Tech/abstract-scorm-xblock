@@ -1,1 +1,1 @@
-from .scormxblock import ScormXBlock
+from .scormxblock import ScormXBlock  # noqa

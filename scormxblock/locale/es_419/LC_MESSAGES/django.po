@@ -52,4 +52,3 @@ msgstr "Altura del iframe"
 #: static/html/author_view.html:3
 msgid "Look in LMS"
 msgstr "Ver en LMS"
-
