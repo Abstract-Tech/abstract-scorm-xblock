@@ -23,12 +23,13 @@ def package_data(pkg, roots):
 setup(
     name='scormxblock-xblock',
     version='0.5',
-    description='scormxblock XBlock',   # TODO: write a better description.
+    description='Load SCORM packages into Open edX courses',
     packages=[
         'scormxblock',
     ],
     install_requires=[
         'XBlock',
+        "freezegun==0.3.11"
     ],
     entry_points={
         'xblock.v1': [

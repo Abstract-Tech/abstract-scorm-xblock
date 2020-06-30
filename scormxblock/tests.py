@@ -39,7 +39,7 @@ class ScormXBlockTests(unittest.TestCase):
         self.assertEqual(block.data_scorm, {})
         self.assertEqual(block.lesson_score, 0)
         self.assertEqual(block.weight, 1)
-        self.assertEqual(block.has_score, False)
+        self.assertEqual(block.has_score, True)
         self.assertEqual(block.icon_class, 'video')
         self.assertEqual(block.width, None)
         self.assertEqual(block.height, 450)
@@ -48,11 +48,11 @@ class ScormXBlockTests(unittest.TestCase):
         block = self.make_one()
 
         fields = {
-            'display_name': 'Test Block',
-            'has_score': 'True',
-            'file': None,
-            'width': 800,
-            'height': 450
+            "display_name": "Test Block",
+            "has_score": "True",
+            "file": None,
+            "width": 800,
+            "height": 450,
         }
 
         block.studio_submit(mock.Mock(method="POST", params=fields))
@@ -107,9 +107,9 @@ class ScormXBlockTests(unittest.TestCase):
 
         self.assertEqual(block.scorm_file_meta, expected_scorm_file_meta)
 
-        zipfile.ZipFile.assert_called_once_with(mock_file_object, 'r')
+        zipfile.ZipFile.assert_called_once_with(mock_file_object.temporary_file_path(), 'r')
         mock_os.path.join.assert_called_once_with(SCORM_ROOT, 'block_id')
-        mock_os.path.exists.assert_called_once_with('path_join')
+        mock_os.path.exists.assert_has_calls([mock.call(SCORM_ROOT), mock.call("path_join")])
         shutil.rmtree.assert_called_once_with('path_join')
         set_fields_xblock.assert_called_once_with('path_join')
 
@@ -129,6 +129,7 @@ class ScormXBlockTests(unittest.TestCase):
     @mock.patch('scormxblock.scormxblock.default_storage')
     def test_student_view_data(self, default_storage, file_storage_path):
         block = self.make_one(
+            scorm_file="test_scorm_file",
             scorm_file_meta={'last_updated': '2018-05-01', 'size': 1234}
         )
         default_storage.configure_mock(url=mock.Mock(return_value='url_zip_file'))
@@ -140,6 +141,7 @@ class ScormXBlockTests(unittest.TestCase):
         self.assertEqual(
             student_view_data,
             {
+                'index_page': None,
                 'last_modified': '2018-05-01',
                 'scorm_data': 'url_zip_file',
                 'size': 1234

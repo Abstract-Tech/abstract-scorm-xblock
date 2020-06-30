@@ -78,7 +78,7 @@ class ScormXBlock(XBlock):
     )
     has_score = Boolean(
         display_name=_("Scored"),
-        help=_("Select False if this component will not receive a numerical score from the Scorm"),
+        help=_("Select False if this component will not receive a numerical score from the SCORM"),
         default=True,
         scope=Scope.settings
     )
@@ -152,17 +152,17 @@ class ScormXBlock(XBlock):
 
     @XBlock.handler
     def studio_submit(self, request, suffix=''):
-        self.display_name = request.params['display_name']
+        self.display_name = request.params.get('display_name')
         self.width = request.params['width']
-        self.height = request.params['height']
-        self.has_score = request.params['has_score']
-        self.popup = request.params['popup']
-        self.autoopen = request.params['autoopen']
-        self.allowopeninplace = request.params['allowopeninplace']
+        self.height = request.params.get('height')
+        self.has_score = request.params.get('has_score')
+        self.popup = request.params.get('popup')
+        self.autoopen = request.params.get('autoopen')
+        self.allowopeninplace = request.params.get('allowopeninplace')
 
         self.icon_class = 'problem' if self.has_score == 'True' else 'video'
 
-        if hasattr(request.params['file'], 'file'):
+        if request.params.get("file") and hasattr(request.params.get("file"), "file"):
             scorm_file = request.params['file'].file
 
             if(self.scorm_file):
