@@ -15,31 +15,37 @@ XBlock to display SCORM content within the Open edX LMS. Editable within Open ed
 Currently supports SCORM 1.2 and SCORM 2004 standard.
 
 Block displays SCORM which saved as `File -> Export -> Web Site -> Zip File`
-
 Block displays SCORM which saved as `File -> Export -> SCORM 1.2`
 
 ## Installation
 
 Install package
 
-    pip install -e git+https://github.com/raccoongang/edx_xblock_scorm.git#egg=edx_xblock_scorm
+    pip install -e git+https://github.com/Abstract-Tech/edx_xblock_scorm.git#egg=edx_xblock_scorm&subdirectory=scormxblock
 
-Note: for OpenEdx releases prior ginkgo add required variables to CMS configuration `<edx-platform-path>/cms/envs/aws.py`:
+**WARNING: This package have to be installed using the `subdirectory` option.**
 
-```
-MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', '/edx/var/edxapp/media/')
-MEDIA_URL = ENV_TOKENS.get('MEDIA_URL', '/media/')
-```
-
-# Usage
+## Usage
 
 - Add `scormxblock` to the list of advanced modules in the advanced settings of a course.
 - Add a `scorm` component to your Unit.
-- Upload a zip file containint your content package. The `imsmanifest.xml` file must be at the root of the zipped package (i.e., make sure you don't have an additional directory at the root of the Zip archive which can handle if e.g., you select an entire folder and use Mac OS X's compress feature).
+- Upload a zip file containing your content package. **The `imsmanifest.xml` file must be at the root of the zipped package. Make sure you don't have an additional directory at the root of the Zip archive.**
 - Publish your content as usual.
 
-## Testing
+## Development
 
-Assuming `scormxblock` is installed as above, you can run tests like so:
+### Setup
 
-    $ python manage.py lms test scormxblock --keepdb
+To setup the development environment:
+
+- create a Python3 virtualenv. If direnv is installed a `direnv allow` should be enough.
+- install derex with `pip install -r requirements.txt`
+- setup the derex project. Read https://derex.page/quickstart.html#quickstart for further informations.
+
+### Running tests
+
+Tests can be run from the derex project directory by running:
+
+    `ddc-project run --rm lms python manage.py lms test scormxblock --keepdb`
+
+The first time this command is run it will initialize the test database. Remove the `--keepdb` flag if you want the test database to be created/destroyed each time.

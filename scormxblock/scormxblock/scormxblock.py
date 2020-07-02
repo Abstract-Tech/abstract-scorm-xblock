@@ -406,6 +406,6 @@ class ScormXBlock(XBlock):
                 """<vertical_demo>
                 <scormxblock/>
                 </vertical_demo>
-             """,
+            """,
             ),
         ]

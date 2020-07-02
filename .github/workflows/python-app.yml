@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python application
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          pip install -r requirements_dev.txt
+      - name: Run pre-commit hooks
+        run: |
+          pre-commit run -a
+      - name: Setup derex project
+        run: |
+          cd derex_project
+          ddc-services up -d
+          derex mysql reset --force
+          derex reset-rabbitmq
+          # We can't use `derex create-bucket` because github CI doesn't allocate a TTY
+          docker run --rm --network derex --entrypoint /bin/sh minio/mc -c 'mc config host add local http://minio:80 minio_derex "ICDTE0ZnlbIR7r6/qE81nkF7Kshc2gXYv6fJR4I/HKPeTbxEeB3nxC85Ne6C844hEaaC2+KHBRIOzGou9leulZ7t" --api s3v4; set -ex; mc mb --ignore-existing local/scorm; mc policy set download local/scorm/profile-images'
+          derex build final
+      - name: Run tests
+        run: |
+          cd derex_project
+          ddc-project run --rm lms python manage.py lms test scormxblock --keepdb

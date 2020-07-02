@@ -57,7 +57,15 @@ docs/_build/
 # PyBuilder
 target/
 
-#Ipython Notebook
+# Ipython Notebook
 .ipynb_checkpoints
+
+# Virtualenvs
+.direnv
 .venv
+
+# Text editors configuration files
 .vscode
+
+# Derex files
+*.derex

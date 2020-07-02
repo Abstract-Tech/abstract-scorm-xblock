@@ -1,0 +1,7 @@
+include LICENSE
+include README.rst
+
+recursive-include scormxblock *
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
