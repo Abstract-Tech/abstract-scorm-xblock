@@ -5,23 +5,21 @@
     <li class="field comp-setting-entry is-set">
       <div class="wrapper-comp-setting">
         <label class="label setting-label" for="display_name">{% trans field_display_name.display_name %}</label>
-        <input class="input setting-input" name="display_name" id="display_name" value="{{ scorm_xblock.display_name }}" type="text" />
+        <input class="input setting-input" name="display_name" id="display_name_field" value="{{ scorm_xblock.display_name }}" type="text" />
       </div>
       <span class="tip setting-help">{% trans field_display_name.help %}</span>
     </li>
     <li class="field comp-setting-entry is-set">
       <div class="wrapper-comp-setting">
         <label class="label setting-label" for="scorm_file">{% trans field_scorm_file.display_name %}</label>
-        <input class="input setting-input" name="scorm_file" id="scorm_file" type="file" accept="application/zip" />
+        <input class="input setting-input" name="scorm_file" id="scorm_file_field" value="{{ scorm_xblock.scorm_file }}" type="text" />
       </div>
-      {% if scorm_xblock.scorm_file_meta.name %}
-      <span class="tip setting-help setting-input-file"><span>{% trans "Currently:" %}</span> {{ scorm_xblock.scorm_file_meta.name }}</span>
-      {% endif %}
+      <span class="tip setting-help">{% trans field_scorm_file.help %}</span>
     </li>
     <li class="field comp-setting-entry is-set">
       <div class="wrapper-comp-setting">
         <label class="label setting-label" for="has_score">{% trans field_has_score.display_name %}</label>
-        <select name="has_score" id="has_score">
+        <select name="has_score" id="has_score_field">
           {% for option in field_has_score.values %}
           <option value="{{ option.value }}" {% if option.value == scorm_xblock.has_score %}selected{% endif %}>{% trans option.display_name %}</option>
           {% endfor %}
@@ -32,14 +30,14 @@
     <li class="field comp-setting-entry is-set">
       <div class="wrapper-comp-setting">
         <label class="label setting-label" for="width">{% trans field_width.display_name %}</label>
-        <input class="input setting-input" name="width" id="width" value="{{ scorm_xblock.width }}" type="number" />
+        <input class="input setting-input" name="width" id="width_field" value="{{ scorm_xblock.width }}" type="number" />
       </div>
       <span class="tip setting-help">{% trans field_width.help %}</span>
     </li>
     <li class="field comp-setting-entry is-set">
       <div class="wrapper-comp-setting">
         <label class="label setting-label" for="height">{% trans field_height.display_name %}</label>
-        <input class="input setting-input" name="height" id="height" value="{{ scorm_xblock.height }}" type="number" />
+        <input class="input setting-input" name="height" id="height_field" value="{{ scorm_xblock.height }}" type="number" />
       </div>
       <span class="tip setting-help">{% trans field_height.help %}</span>
     </li>
@@ -47,7 +45,7 @@
       <div class="wrapper-comp-setting">
         <fieldset>
           <label class="label setting-label" for="popup">{% trans popup.display_name %}</label>
-          <select name="popup" id="popup">
+          <select name="popup" id="popup_field">
           {% for option in popup.values %}
             <option value="{{ option.value }}" {% if option.value == scorm_xblock.popup %}selected{% endif %}>{% trans option.display_name %}</option>
           {% endfor %}
@@ -60,7 +58,7 @@
       <div class="wrapper-comp-setting">
         <fieldset>
           <label class="label setting-label" for="autoopen">{% trans autoopen.display_name %}</label>
-          <select name="autoopen" id="autoopen">
+          <select name="autoopen" id="autoopen_field">
           {% for option in autoopen.values %}
             <option value="{{ option.value }}" {% if option.value == scorm_xblock.autoopen %}selected{% endif %}>{% trans option.display_name %}</option>
           {% endfor %}
@@ -73,7 +71,7 @@
       <div class="wrapper-comp-setting">
         <fieldset>
           <label class="label setting-label" for="allowopeninplace">{% trans allowopeninplace.display_name %}</label>
-          <select name="allowopeninplace" id="allowopeninplace">
+          <select name="allowopeninplace" id="allowopeninplace_field">
           {% for option in allowopeninplace.values %}
             <option value="{{ option.value }}" {% if option.value == scorm_xblock.allowopeninplace %}selected{% endif %}>{% trans option.display_name %}</option>
           {% endfor %}

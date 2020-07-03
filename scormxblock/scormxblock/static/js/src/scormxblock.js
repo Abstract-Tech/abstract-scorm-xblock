@@ -122,11 +122,6 @@ function ScormXBlock(runtime, element, settings) {
       '" ' +
       'allow="fullscreen" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>';
 
-    //if (settings.version_scorm == 'SCORM_12') {
-    //  API = new SCORM_12_API();
-    //} else {
-    //  API_1484_11 = new SCORM_2004_API();
-    //}
     var popupWindow = null;
 
     function GoInFullscreen(element) {

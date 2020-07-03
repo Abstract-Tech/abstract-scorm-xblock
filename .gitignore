@@ -69,3 +69,4 @@ target/
 
 # Derex files
 *.derex
+derex_project/settings/derex

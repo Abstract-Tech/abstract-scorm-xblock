@@ -42,6 +42,27 @@ To setup the development environment:
 - install derex with `pip install -r requirements.txt`
 - setup the derex project. Read https://derex.page/quickstart.html#quickstart for further informations.
 
+### Development and Debugging
+
+In order to be able to develop and debug effectively some steps may be taken:
+
+- get a shell inside the container:
+
+  ```
+  cd derex_project
+  ddc-project exec cms sh
+  ```
+
+- setup the package in editable mode. This will allow for testing changes without the need to reinstall the package:
+
+  `pip install -e /openedx/derex.requirements/scormxblock`
+
+- launch the Django debug server manually and bind it on port `81`:
+
+  `python manage.py cms runserver 0:81`
+
+- on your browser https://studio.scorm.localhost:81 should now be available. You should now be able to insert debug code in both Python and JS files and benefit from Django runserver auto reload feature.
+
 ### Running tests
 
 Tests can be run from the derex project directory by running:
