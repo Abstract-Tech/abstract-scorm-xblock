@@ -37,7 +37,7 @@ class ScormXBlock(XBlock):
     scorm_file = String(
         display_name=_("SCORM file package"),
         help=_(
-            'Studio URL of the SCORM Zip file uploaded through the "Files & Uploads" section of the Course'
+            'Web URL of the SCORM Zip file uploaded through the "Files & Uploads" section of the Course'
         ),
         default="",
         scope=Scope.settings,
