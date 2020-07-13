@@ -14,6 +14,8 @@ from webob import Response
 from django.core.files.storage import default_storage
 from django.template import Context, Template
 
+from xmodule.contentstore.django import contentstore
+
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, Integer
 from xblock.fragment import Fragment
@@ -40,22 +42,11 @@ class ScormXBlock(XBlock):
         default="",
         scope=Scope.settings,
     )
-    scorm_url = String(
-        display_name=_("SCORM file URL"), default="", scope=Scope.settings,
-    )
-    path_index_page = String(
+    scorm_index_page = String(
         display_name=_("Path to the index page in scorm file"),
         scope=Scope.settings,
         default="index.html",
     )
-    # scorm_file_meta = Dict(scope=Scope.content)
-    version_scorm = String(default="SCORM_12", scope=Scope.settings,)
-    # save completion_status for SCORM_2004
-    lesson_status = String(scope=Scope.user_state, default="not attempted")
-    success_status = String(scope=Scope.user_state, default="unknown")
-    data_scorm = Dict(scope=Scope.user_state, default={})
-    lesson_score = Float(scope=Scope.user_state, default=0)
-    weight = Float(default=1, scope=Scope.settings)
     has_score = Boolean(
         display_name=_("Scored"),
         help=_(
@@ -94,6 +85,16 @@ class ScormXBlock(XBlock):
         default=False,
         scope=Scope.settings,
     )
+    weight = Float(default=1, scope=Scope.settings)
+    _scorm_url = String(
+        display_name=_("SCORM file URL"), default="", scope=Scope.settings,
+    )
+    _scorm_version = String(default="SCORM_12", scope=Scope.settings,)
+    # save completion_status for SCORM_2004
+    _lesson_status = String(scope=Scope.user_state, default="not attempted")
+    _success_status = String(scope=Scope.user_state, default="unknown")
+    _scorm_data = Dict(scope=Scope.user_state, default={})
+    _lesson_score = Float(scope=Scope.user_state, default=0)
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
@@ -106,7 +107,7 @@ class ScormXBlock(XBlock):
         frag = Fragment(template)
         frag.add_css(self.resource_string("static/css/scormxblock.css"))
         frag.add_javascript(self.resource_string("static/js/src/scormxblock.js"))
-        settings = {"version_scorm": self.version_scorm}
+        settings = {"scorm_version": self._scorm_version}
         settings.update(self.get_settings_student())
         frag.initialize_js("ScormXBlock", json_args=settings)
         return frag
@@ -137,15 +138,12 @@ class ScormXBlock(XBlock):
         self.allowopeninplace = request.params.get("allowopeninplace")
         self.icon_class = "problem" if self.has_score == "True" else "video"
 
-        if request.params.get("scorm_file"):
-            from xmodule.contentstore.django import contentstore
+        filename = request.params["scorm_file"].split("/").pop()
 
+        if filename:
             content, count = contentstore().get_all_content_for_course(
                 self.course_id,
-                filter_params={
-                    "contentType": "application/zip",
-                    "displayname": request.params["scorm_file"],
-                },
+                filter_params={"contentType": "application/zip", "filename": filename,},
             )
             if not count:
                 return Response(
@@ -179,9 +177,10 @@ class ScormXBlock(XBlock):
                             io.BytesIO(zipfile_obj.read(filename)),
                         )
                 self.scorm_file = request.params["scorm_file"]
-                default_storage.querystring_auth = False
-                self.scorm_url = default_storage.url(
-                    os.path.join("public", content[0].get("md5"), self.path_index_page)
+                # We can't load the scormfile directly from the default_storage URL
+                # since it will be blocked by the SAMEORIGIN policy
+                self._scorm_url = "/scormxblock/{}/{}".format(
+                    content[0].get("md5"), self.scorm_index_page
                 )
                 return Response(
                     json.dumps({"message": "SCORM package uploaded successfully !"}),
@@ -197,56 +196,56 @@ class ScormXBlock(XBlock):
     @XBlock.json_handler
     def scorm_get_value(self, data, suffix=""):
         name = data.get("name")
-        if name in ["cmi.core.lesson_status", "cmi.completion_status"]:
-            return {"value": self.lesson_status}
-        elif name == "cmi.success_status":
-            return {"value": self.success_status}
+        if name in ["cmi.core._lesson_status", "cmi.completion_status"]:
+            return {"value": self._lesson_status}
+        elif name == "cmi._success_status":
+            return {"value": self._success_status}
         elif name in ["cmi.core.score.raw", "cmi.score.raw"]:
-            return {"value": self.lesson_score * 100}
+            return {"value": self._lesson_score * 100}
         else:
-            return {"value": self.data_scorm.get(name, "")}
+            return {"value": self._scorm_data.get(name, "")}
 
     @XBlock.json_handler
     def scorm_set_value(self, data, suffix=""):
         context = {"result": "success"}
         name = data.get("name")
 
-        if name in ["cmi.core.lesson_status", "cmi.completion_status"]:
-            self.lesson_status = data.get("value")
+        if name in ["cmi.core._lesson_status", "cmi.completion_status"]:
+            self._lesson_status = data.get("value")
             if self.has_score and data.get("value") in [
                 "completed",
                 "failed",
                 "passed",
             ]:
                 self.publish_grade()
-                context.update({"lesson_score": self.lesson_score})
+                context.update({"_lesson_score": self._lesson_score})
 
-        elif name == "cmi.success_status":
-            self.success_status = data.get("value")
+        elif name == "cmi._success_status":
+            self._success_status = data.get("value")
             if self.has_score:
-                if self.success_status == "unknown":
-                    self.lesson_score = 0
+                if self._success_status == "unknown":
+                    self._lesson_score = 0
                 self.publish_grade()
-                context.update({"lesson_score": self.lesson_score})
+                context.update({"_lesson_score": self._lesson_score})
         elif name in ["cmi.core.score.raw", "cmi.score.raw"] and self.has_score:
-            self.lesson_score = int(data.get("value", 0)) / 100.0
+            self._lesson_score = int(data.get("value", 0)) / 100.0
             self.publish_grade()
-            context.update({"lesson_score": self.lesson_score})
+            context.update({"_lesson_score": self._lesson_score})
         else:
-            self.data_scorm[name] = data.get("value", "")
+            self._scorm_data[name] = data.get("value", "")
 
         context.update({"completion_status": self.get_completion_status()})
         return context
 
     def publish_grade(self):
-        if self.lesson_status == "failed" or (
-            self.version_scorm == "SCORM_2004"
-            and self.success_status in ["failed", "unknown"]
+        if self._lesson_status == "failed" or (
+            self._scorm_version == "SCORM_2004"
+            and self._success_status in ["failed", "unknown"]
         ):
             self.runtime.publish(self, "grade", {"value": 0, "max_value": self.weight})
         else:
             self.runtime.publish(
-                self, "grade", {"value": self.lesson_score, "max_value": self.weight}
+                self, "grade", {"value": self._lesson_score, "max_value": self.weight}
             )
 
     def max_score(self):
@@ -270,14 +269,14 @@ class ScormXBlock(XBlock):
 
     def get_context_student(self):
         return {
-            "scorm_file_path": self.scorm_url,
+            "scorm_file_path": self._scorm_url,
             "completion_status": self.get_completion_status(),
             "scorm_xblock": self,
         }
 
     def get_settings_student(self):
         return {
-            "scorm_file_path": self.scorm_url,
+            "scorm_file_path": self._scorm_url,
             "completion_status": self.get_completion_status(),
             "scorm_xblock": {
                 "display_name": self.display_name,
@@ -323,18 +322,18 @@ class ScormXBlock(XBlock):
         if (schemaversion is not None) and (
             re.match("^1.2$", schemaversion.text) is None
         ):
-            self.version_scorm = "SCORM_2004"
+            self._scorm_version = "SCORM_2004"
         else:
-            self.version_scorm = "SCORM_12"
+            self._scorm_version = "SCORM_12"
 
-        self.path_index_page = "index.html"
+        self.scorm_index_page = "index.html"
         if resource:
-            self.path_index_page = resource.get("href")
+            self.scorm_index_page = resource.get("href")
 
     def get_completion_status(self):
-        completion_status = self.lesson_status
-        if self.version_scorm == "SCORM_2004" and self.success_status != "unknown":
-            completion_status = self.success_status
+        completion_status = self._lesson_status
+        if self._scorm_version == "SCORM_2004" and self._success_status != "unknown":
+            completion_status = self._success_status
         return completion_status
 
     def _file_storage_path(self):
@@ -372,7 +371,7 @@ class ScormXBlock(XBlock):
                 "last_modified": self.scorm_file_meta.get("last_updated", ""),
                 "scorm_data": default_storage.url(self._file_storage_path()),
                 "size": self.scorm_file_meta.get("size", 0),
-                "index_page": self.path_index_page,
+                "index_page": self.scorm_index_page,
             }
         return {}
 

@@ -91,7 +91,7 @@ function ScormXBlock(runtime, element, settings) {
 
   var GetAPI = function () {
     let api;
-    if (settings.version_scorm == "SCORM_12") {
+    if (settings.scorm_version == "SCORM_12") {
       api = new SCORM_12_API();
     } else {
       api = new SCORM_2004_API();
