@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="scormxblock",
-    version="0.5",
+    version="0.6",
     description="Load SCORM packages into Open edX courses",
     packages=["scormxblock"],
     install_requires=["XBlock", "freezegun==0.3.11"],

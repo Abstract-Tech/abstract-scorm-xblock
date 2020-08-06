@@ -2,6 +2,7 @@ import mimetypes
 import os
 import posixpath
 
+from django.conf import settings
 from django.http import FileResponse, Http404
 
 from django.utils.http import http_date
@@ -15,7 +16,7 @@ def scormxblock_serve(request, md5, path):
     Proxy MinIO storage files in order to avoid SAMEORIGIN issues.
     """
     path = posixpath.normpath(unquote(path)).lstrip("/")
-    fullpath = os.path.join("public", md5, path)
+    fullpath = os.path.join(settings.STORAGE_SCORM_PATH, md5, path)
 
     if not default_storage.exists(fullpath):
         raise Http404()
@@ -33,4 +34,6 @@ def scormxblock_serve(request, md5, path):
     return response
 
 
-urlpatterns = [url(r"(?P<md5>[a-f0-9]{32})/(?P<path>.*)$", scormxblock_serve, {})]
+urlpatterns = [
+    url(r"(?P<md5>[a-f0-9]{32})/(?P<path>.*)$", scormxblock_serve, name="scorm_serve")
+]

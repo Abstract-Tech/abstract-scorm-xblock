@@ -85,13 +85,12 @@ function ScormXBlock(runtime, element, settings) {
         $(".completion_status", element).html(response.completion_status);
       },
     });
-
     return "true";
   };
 
   var GetAPI = function () {
     let api;
-    if (settings.scorm_version == "SCORM_12") {
+    if (settings.scorm_version == "1.2") {
       api = new SCORM_12_API();
     } else {
       api = new SCORM_2004_API();
@@ -108,7 +107,7 @@ function ScormXBlock(runtime, element, settings) {
     let innerIframe =
       "<!DOCTYPE html><html><head><style>body, html, * {width: 100%; height: 100%; margin: 0; padding: 0; border: 0;}</style></head><body>" +
       '<iframe class="scorm_object" src="' +
-      settings.scorm_file_path +
+      settings.scorm_url +
       '" width="100%" height="100%" ' +
       'allow="fullscreen" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>' +
       "</html></body>";

@@ -40,7 +40,8 @@ class ScormXBlockAppConfig(AppConfig):
 
 
 def plugin_settings(settings):
-    """
-    Nothing to do here.
-    """
-    pass
+    if not getattr(settings, "STORAGE_SCORM_PATH", None):
+        # This is used to build the path to the location where the
+        # SCORM packages are extracted into the default storage
+        # e.g. /scorm_packages/09c1735eaa57d78fe245868f0e07cf7b/index_lms.html
+        settings.STORAGE_SCORM_PATH = "scorm_packages"

@@ -1,18 +1,15 @@
-import json
-import hashlib
-import re
 import os
 import io
+import json
 import logging
-import pkg_resources
-import xml.etree.ElementTree as ET
-
 from zipfile import ZipFile
-from functools import partial
-from webob import Response
 
+from webob import Response
+from lxml import etree
+
+from django.conf import settings
+from django.urls import reverse
 from django.core.files.storage import default_storage
-from django.template import Context, Template
 
 from xmodule.contentstore.django import contentstore
 
@@ -20,7 +17,9 @@ from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, Integer
 from xblock.fragment import Fragment
 
+from .exceptions import ScormManifestNotFoundException, ScormPackageNotFoundException
 from .utils import gettext as _
+from .utils import resource_string, render_template
 
 
 logger = logging.getLogger(__name__)
@@ -31,31 +30,46 @@ class ScormXBlock(XBlock):
     display_name = String(
         display_name=_("Display Name"),
         help=_("Display name for this module"),
-        default="Scorm",
+        default="SCORM unit",
         scope=Scope.settings,
     )
     scorm_file = String(
         display_name=_("SCORM file package"),
         help=_(
-            'Web URL of the SCORM Zip file uploaded through the "Files & Uploads" section of the Course'
+            'Name of the SCORM Zip file uploaded through the "Files & Uploads" section of the Course'
         ),
         default="",
         scope=Scope.settings,
     )
-    scorm_index_page = String(
-        display_name=_("Path to the index page in scorm file"),
+    scorm_index = String(
+        display_name=_("SCORM index"),
+        help=_(
+            "Path to the HTML index page in the SCORM package. If left blank we'll try to guess it's location from the SCORM manifest file"
+        ),
+        default="",
         scope=Scope.settings,
-        default="index.html",
     )
     has_score = Boolean(
         display_name=_("Scored"),
         help=_(
-            "Select False if this component will not receive a numerical score from the SCORM"
+            "Select False if this unit will not receive a numerical score from the SCORM"
         ),
         default=True,
         scope=Scope.settings,
     )
-    icon_class = String(default="video", scope=Scope.settings,)
+    icon_class = String(
+        display_name=_("Icon class"),
+        help=_(
+            "The icon which will be displayed on the units navigation in courseware"
+        ),
+        values=[
+            {"display_name": "Problem", "value": "problem"},
+            {"display_name": "Video", "value": "video"},
+            {"display_name": "Other", "value": "other"},
+        ],
+        default="problem",
+        scope=Scope.settings,
+    )
     width = Integer(
         display_name=_("Display Width (px)"),
         help=_("Width of iframe, if empty, the default 100%"),
@@ -89,43 +103,69 @@ class ScormXBlock(XBlock):
     _scorm_url = String(
         display_name=_("SCORM file URL"), default="", scope=Scope.settings,
     )
-    _scorm_version = String(default="SCORM_12", scope=Scope.settings,)
+    _scorm_version = String(default="1.2", scope=Scope.settings,)
     # save completion_status for SCORM_2004
     _lesson_status = String(scope=Scope.user_state, default="not attempted")
     _success_status = String(scope=Scope.user_state, default="unknown")
     _scorm_data = Dict(scope=Scope.user_state, default={})
     _lesson_score = Float(scope=Scope.user_state, default=0)
 
-    def resource_string(self, path):
-        """Handy helper for getting resources from our kit."""
-        data = pkg_resources.resource_string(__name__, path)
-        return data.decode("utf8")
-
     def student_view(self, context=None):
-        context_html = self.get_context_student()
-        template = self.render_template("static/html/scormxblock.html", context_html)
-        frag = Fragment(template)
-        frag.add_css(self.resource_string("static/css/scormxblock.css"))
-        frag.add_javascript(self.resource_string("static/js/src/scormxblock.js"))
-        settings = {"scorm_version": self._scorm_version}
-        settings.update(self.get_settings_student())
-        frag.initialize_js("ScormXBlock", json_args=settings)
-        return frag
+        self._check_scorm_package_is_extracted()
+
+        template = render_template(
+            "static/html/scormxblock.html",
+            {"completion_status": self._get_completion_status(), "scorm_xblock": self},
+        )
+        fragment = Fragment(template)
+        fragment.add_css(resource_string("static/css/scormxblock.css"))
+        fragment.add_javascript(resource_string("static/js/src/scormxblock.js"))
+        js_settings = {
+            "scorm_version": self._scorm_version,
+            "scorm_url": self._scorm_url,
+            "completion_status": self._get_completion_status(),
+            "scorm_xblock": {
+                "display_name": self.display_name,
+                "width": self.width,
+                "height": self.height,
+                "popup": self.popup,
+                "autoopen": self.autoopen,
+                "allowopeninplace": self.allowopeninplace,
+            },
+        }
+        fragment.initialize_js("ScormXBlock", json_args=js_settings)
+        return fragment
 
     def studio_view(self, context=None):
-        context_html = self.get_context_studio()
-        template = self.render_template("static/html/studio.html", context_html)
-        frag = Fragment(template)
-        frag.add_css(self.resource_string("static/css/scormxblock.css"))
-        frag.add_javascript(self.resource_string("static/js/src/studio.js"))
-        frag.initialize_js("ScormStudioXBlock")
-        return frag
+        self._check_scorm_package_is_extracted()
+
+        template = render_template(
+            "static/html/studio.html",
+            {
+                "display_name_field": self.fields["display_name"],
+                "scorm_file_field": self.fields["scorm_file"],
+                "scorm_index_field": self.fields["scorm_index"],
+                "has_score_field": self.fields["has_score"],
+                "icon_class_field": self.fields["icon_class"],
+                "width_field": self.fields["width"],
+                "height_field": self.fields["height"],
+                "popup_field": self.fields["popup"],
+                "autoopen_field": self.fields["autoopen"],
+                "allowopeninplace_field": self.fields["allowopeninplace"],
+                "scorm_xblock": self,
+            },
+        )
+        fragment = Fragment(template)
+        fragment.add_css(resource_string("static/css/scormxblock.css"))
+        fragment.add_javascript(resource_string("static/js/src/studio.js"))
+        fragment.initialize_js("ScormStudioXBlock")
+        return fragment
 
     @XBlock.handler
     def studio_submit(self, request, suffix=""):
         """
         This function handles the Studio submit AJAX call.
-        It must return a WebOb Response object as specified in the XBlock API
+        It must return a WebOb Response object as specified by the XBlock API
         specifications.
         https://edx.readthedocs.io/projects/xblock/en/latest/xblock.html#xblock.core.XBlock.handler
         """
@@ -136,61 +176,31 @@ class ScormXBlock(XBlock):
         self.popup = request.params.get("popup")
         self.autoopen = request.params.get("autoopen")
         self.allowopeninplace = request.params.get("allowopeninplace")
-        self.icon_class = "problem" if self.has_score == "True" else "video"
+        self.icon_class = request.params.get("icon_class")
+        self.scorm_index = request.params.get("scorm_index") or ""
+        self.scorm_file = request.params["scorm_file"]
 
-        filename = request.params["scorm_file"].split("/").pop()
-
-        if filename:
-            content, count = contentstore().get_all_content_for_course(
-                self.course_id,
-                filter_params={"contentType": "application/zip", "filename": filename,},
+        try:
+            self._save_scorm_package()
+        except ScormManifestNotFoundException:
+            return Response(
+                json.dumps({"field": "scorm_file", "message": "Invalid SCORM file"}),
+                content_type="application/json",
+                status=400,
             )
-            if not count:
-                return Response(
-                    json.dumps({"field": "scorm_file", "message": "No zipfile found"}),
-                    content_type="application/json",
-                    status=404,
-                )
-            if count > 1:
-                return Response(
-                    json.dumps(
-                        {"field": "scorm_file", "message": "Multiple zipfiles found"}
-                    ),
-                    content_type="application/json",
-                    status=400,
-                )
-            if count == 1:
-                # We are actually loading the whole zipfile in memory.
-                # This step should probably be handled more carefully.
-                scorm_zipfile_data = (
-                    contentstore().find(content[0].get("asset_key")).data
-                )
-                with ZipFile(io.BytesIO(scorm_zipfile_data)) as zipfile_obj:
-                    # We can't save extracted files directly
-                    # ZipFile does not provide a seek method till python 3.7
-                    # https://bugs.python.org/issue22908
-                    for filename in zipfile_obj.namelist():
-                        if filename == "imsmanifest.xml":
-                            self.parse_manifest(io.BytesIO(zipfile_obj.read(filename)))
-                        default_storage.save(
-                            os.path.join("public", content[0].get("md5"), filename),
-                            io.BytesIO(zipfile_obj.read(filename)),
-                        )
-                self.scorm_file = request.params["scorm_file"]
-                # We can't load the scormfile directly from the default_storage URL
-                # since it will be blocked by the SAMEORIGIN policy
-                self._scorm_url = "/scormxblock/{}/{}".format(
-                    content[0].get("md5"), self.scorm_index_page
-                )
-                return Response(
-                    json.dumps({"message": "SCORM package uploaded successfully !"}),
-                    content_type="application/json",
-                    status=200,
-                )
+        except ScormPackageNotFoundException:
+            return Response(
+                json.dumps(
+                    {"field": "scorm_file", "message": "SCORM package not found"}
+                ),
+                content_type="application/json",
+                status=404,
+            )
+
         return Response(
-            json.dumps({"field": "scorm_file", "message": "Unhandled error"}),
+            json.dumps({"message": "XBlock saved successfully !"}),
             content_type="application/json",
-            status=400,
+            status=200,
         )
 
     @XBlock.json_handler
@@ -217,29 +227,28 @@ class ScormXBlock(XBlock):
                 "failed",
                 "passed",
             ]:
-                self.publish_grade()
+                self._publish_grade()
                 context.update({"_lesson_score": self._lesson_score})
-
         elif name == "cmi._success_status":
             self._success_status = data.get("value")
             if self.has_score:
                 if self._success_status == "unknown":
                     self._lesson_score = 0
-                self.publish_grade()
+                self._publish_grade()
                 context.update({"_lesson_score": self._lesson_score})
         elif name in ["cmi.core.score.raw", "cmi.score.raw"] and self.has_score:
             self._lesson_score = int(data.get("value", 0)) / 100.0
-            self.publish_grade()
+            self._publish_grade()
             context.update({"_lesson_score": self._lesson_score})
         else:
             self._scorm_data[name] = data.get("value", "")
 
-        context.update({"completion_status": self.get_completion_status()})
+        context.update({"completion_status": self._get_completion_status()})
         return context
 
-    def publish_grade(self):
+    def _publish_grade(self):
         if self._lesson_status == "failed" or (
-            self._scorm_version == "SCORM_2004"
+            self._scorm_version.startswith("2004")
             and self._success_status in ["failed", "unknown"]
         ):
             self.runtime.publish(self, "grade", {"value": 0, "max_value": self.weight})
@@ -248,132 +257,94 @@ class ScormXBlock(XBlock):
                 self, "grade", {"value": self._lesson_score, "max_value": self.weight}
             )
 
-    def max_score(self):
-        """
-        Return the maximum score possible.
-        """
-        return self.weight if self.has_score else None
-
-    def get_context_studio(self):
-        return {
-            "field_display_name": self.fields["display_name"],
-            "field_scorm_file": self.fields["scorm_file"],
-            "field_has_score": self.fields["has_score"],
-            "field_width": self.fields["width"],
-            "field_height": self.fields["height"],
-            "popup": self.fields["popup"],
-            "autoopen": self.fields["autoopen"],
-            "allowopeninplace": self.fields["allowopeninplace"],
-            "scorm_xblock": self,
-        }
-
-    def get_context_student(self):
-        return {
-            "scorm_file_path": self._scorm_url,
-            "completion_status": self.get_completion_status(),
-            "scorm_xblock": self,
-        }
-
-    def get_settings_student(self):
-        return {
-            "scorm_file_path": self._scorm_url,
-            "completion_status": self.get_completion_status(),
-            "scorm_xblock": {
-                "display_name": self.display_name,
-                "width": self.width,
-                "height": self.height,
-                "popup": self.popup,
-                "autoopen": self.autoopen,
-                "allowopeninplace": self.allowopeninplace,
-            },
-        }
-
-    def render_template(self, template_path, context):
-        template_str = self.resource_string(template_path)
-        template = Template(template_str)
-        return template.render(Context(context))
-
-    def parse_manifest(self, manifest):
-        try:
-            tree = ET.parse(manifest)
-        except IOError as e:
-            logger.warning(e)
-            return
-
-        namespace = ""
-        # Put back the offset to byte 0 since we already read this file.
-        # Not sure we really need to instantiate another ET instance here.
-        manifest.seek(0)
-        for node in [node for _, node in ET.iterparse(manifest, events=["start-ns"])]:
-            if node[0] == "":
-                namespace = node[1]
-                break
-
-        root = tree.getroot()
-        if namespace:
-            resource = root.find("{{{0}}}resources/{{{0}}}resource".format(namespace))
-            schemaversion = root.find(
-                "{{{0}}}metadata/{{{0}}}schemaversion".format(namespace)
-            )
-        else:
-            resource = root.find("resources/resource")
-            schemaversion = root.find("metadata/schemaversion")
-
-        if (schemaversion is not None) and (
-            re.match("^1.2$", schemaversion.text) is None
-        ):
-            self._scorm_version = "SCORM_2004"
-        else:
-            self._scorm_version = "SCORM_12"
-
-        self.scorm_index_page = "index.html"
-        if resource:
-            self.scorm_index_page = resource.get("href")
-
-    def get_completion_status(self):
+    def _get_completion_status(self):
         completion_status = self._lesson_status
-        if self._scorm_version == "SCORM_2004" and self._success_status != "unknown":
+        if self._scorm_version.startswith("2004") and self._success_status != "unknown":
             completion_status = self._success_status
         return completion_status
 
-    def _file_storage_path(self):
-        """
-        Get file path of storage.
-        """
-        path = (
-            "{loc.org}/{loc.course}/{loc.block_type}/{loc.block_id}"
-            "/{sha1}{ext}".format(
-                loc=self.location,
-                sha1=self.scorm_file_meta["sha1"],
-                ext=os.path.splitext(self.scorm_file_meta["name"])[1],
-            )
+    def _set_scorm_url(self, scorm_md5):
+        # We can't load the scorm file directly from the default_storage URL
+        # since it will be blocked by the SAMEORIGIN policy
+        self._scorm_url = reverse(
+            "scormxblock:scorm_serve",
+            kwargs={"md5": scorm_md5, "path": self.scorm_index,},
         )
-        return path
 
-    def get_sha1(self, file_descriptor):
-        """
-        Get file hex digest (fingerprint).
-        """
-        block_size = 8 * 1024
-        sha1 = hashlib.sha1()
-        for block in iter(partial(file_descriptor.read, block_size), ""):
-            sha1.update(block)
-        file_descriptor.seek(0)
-        return sha1.hexdigest()
+    def _read_scorm_manifest(self, scorm_path):
+        manifest_path = os.path.join(scorm_path, "imsmanifest.xml")
+        try:
+            return default_storage.open(manifest_path).read()
+        except IOError:
+            raise ScormManifestNotFoundException()
 
-    def student_view_data(self):
+    def _set_scorm_index(self, manifest):
+        if not self.scorm_index:
+            try:
+                self.scorm_index = (
+                    etree.fromstring(manifest).find(".//{*}resource").get("href")
+                )
+            except (IOError, AttributeError):
+                self.scorm_index = "index.html"
+
+    def _set_scorm_version(self, manifest):
+        try:
+            self._scorm_version = (
+                etree.fromstring(manifest).find(".//{*}schemaversion").text
+            )
+        except (IOError, AttributeError):
+            self._scorm_version = "1.2"
+
+    def _search_scorm_package(self):
+        scorm_content, count = contentstore().get_all_content_for_course(
+            self.course_id,
+            filter_params={
+                "contentType": "application/zip",
+                "displayname": self.scorm_file,
+            },
+        )
+        if not count:
+            raise ScormPackageNotFoundException()
+        # Since course content names are unique we are sure that we
+        # can't have multiple results, so we just pop the first.
+        return scorm_content.pop()
+
+    def _extract_scorm_package(self, scorm_package):
         """
-        Inform REST api clients about original file location and it's "freshness".
-        Make sure to include `student_view_data=scormxblock` to URL params in the request.
+        Extracts the SCORM package to the default storage if needed
         """
-        if self.scorm_file and self.scorm_file_meta:
-            return {
-                "last_modified": self.scorm_file_meta.get("last_updated", ""),
-                "scorm_data": default_storage.url(self._file_storage_path()),
-                "size": self.scorm_file_meta.get("size", 0),
-                "index_page": self.scorm_index_page,
-            }
-        return {}
+        scorm_path = os.path.join(settings.STORAGE_SCORM_PATH, scorm_package["md5"])
+        if not default_storage.exists(scorm_path):
+            # We are actually loading the whole zipfile in memory.
+            # This step should probably be handled more carefully.
+            scorm_zipfile_data = contentstore().find(scorm_package["asset_key"]).data
+            with ZipFile(io.BytesIO(scorm_zipfile_data)) as zipfile_obj:
+                # We can't save extracted files directly
+                # ZipFile does not provide a seek method till python 3.7
+                # https://bugs.python.org/issue22908
+                for filename in zipfile_obj.namelist():
+                    default_storage.save(
+                        os.path.join(
+                            settings.STORAGE_SCORM_PATH, scorm_package["md5"], filename
+                        ),
+                        io.BytesIO(zipfile_obj.read(filename)),
+                    )
+        return scorm_path
+
+    def _check_scorm_package_is_extracted(self):
+        scorm_package = self._search_scorm_package()
+        scorm_path = self._extract_scorm_package(scorm_package)
+        return scorm_package, scorm_path
+
+    def _save_scorm_package(self):
+        if self.scorm_file:
+            scorm_package, scorm_path = self._check_scorm_package_is_extracted()
+            manifest = self._read_scorm_manifest(scorm_path)
+            self._set_scorm_version(manifest)
+            if not self.scorm_index:
+                self._set_scorm_index(manifest)
+
+            self._set_scorm_url(scorm_package["md5"])
 
     @staticmethod
     def workbench_scenarios():
