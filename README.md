@@ -1,15 +1,4 @@
-# THIS FORK HAS:
-
-- merged branch with opening SCORM in popup
-- plenty of popup options (open at start, show "open inline" button)
-- isolated APIs for multiple xblocks - you can have more than one SCORM package in one vertical, and scores are calculated as they should
-
-# THIS FORK STILL DOESN'T HAVE:
-
-- proper deleting zip & unzipped content on ~~package replacing and~~ xblock deletion
-- localization working as it should
-
-# edx_xblock_scorm
+# Scorm XBlock
 
 XBlock to display SCORM content within the Open edX LMS. Editable within Open edx Studio. Will save student state and report scores to the progress tab of the course.
 Currently supports SCORM 1.2 and SCORM 2004 standard.
@@ -70,3 +59,8 @@ Tests can be run from the derex project directory by running:
     `ddc-project run --rm lms python manage.py lms test scormxblock --keepdb`
 
 The first time this command is run it will initialize the test database. Remove the `--keepdb` flag if you want the test database to be created/destroyed each time.
+
+## TODO
+
+* Update tests
+* Delete old SCORM packages
