@@ -7,18 +7,18 @@ from openedx.core.djangoapps.plugins.constants import ProjectType
 from openedx.core.djangoapps.plugins.constants import SettingsType
 
 
-class ScormXBlockAppConfig(AppConfig):
-    name = "scormxblock"
+class AbstractScormXBlockAppConfig(AppConfig):
+    name = "abstract_scorm_xblock"
     plugin_app = {
         PluginURLs.CONFIG: {
             ProjectType.LMS: {
-                PluginURLs.NAMESPACE: "scormxblock",
-                PluginURLs.REGEX: "scormxblock/",
+                PluginURLs.NAMESPACE: "abstract_scorm_xblock",
+                PluginURLs.REGEX: "abstract_scorm_xblock/",
                 PluginURLs.RELATIVE_PATH: "views",
             },
             ProjectType.CMS: {
-                PluginURLs.NAMESPACE: "scormxblock",
-                PluginURLs.REGEX: "scormxblock/",
+                PluginURLs.NAMESPACE: "abstract_scorm_xblock",
+                PluginURLs.REGEX: "abstract_scorm_xblock/",
                 PluginURLs.RELATIVE_PATH: "views",
             },
         },

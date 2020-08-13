@@ -25,7 +25,7 @@ from .utils import resource_string, render_template
 logger = logging.getLogger(__name__)
 
 
-class ScormXBlock(XBlock):
+class AbstractScormXBlock(XBlock):
 
     display_name = String(
         display_name=_("Display Name"),
@@ -267,7 +267,7 @@ class ScormXBlock(XBlock):
         # We can't load the scorm file directly from the default_storage URL
         # since it will be blocked by the SAMEORIGIN policy
         self._scorm_url = reverse(
-            "scormxblock:scorm_serve",
+            "abstract_scorm_xblock:scorm_serve",
             kwargs={"md5": scorm_md5, "path": self.scorm_index,},
         )
 

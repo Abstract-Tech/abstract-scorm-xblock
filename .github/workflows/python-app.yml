@@ -39,4 +39,4 @@ jobs:
       - name: Run tests
         run: |
           cd derex_project
-          ddc-project run --rm lms python manage.py lms test scormxblock --keepdb
+          ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb
