@@ -58,15 +58,12 @@ function ScormXBlock(runtime, element, settings) {
   }
 
   var GetValue = function (cmi_element) {
-    $.ajax({
+    return $.ajax({
       type: "POST",
       url: runtime.handlerUrl(element, "scorm_get_value"),
       data: JSON.stringify({ name: cmi_element }),
-      async: true,
-      success: function (response) {
-        return response.value;
-      },
-    });
+      async: false,
+    }).responseText;
   };
 
   var SetValue = function (cmi_element, value) {
