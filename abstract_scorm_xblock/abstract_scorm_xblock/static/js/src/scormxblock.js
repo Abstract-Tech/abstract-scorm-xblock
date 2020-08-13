@@ -58,26 +58,23 @@ function ScormXBlock(runtime, element, settings) {
   }
 
   var GetValue = function (cmi_element) {
-    var handlerUrl = runtime.handlerUrl(element, "scorm_get_value");
-
-    var response = $.ajax({
+    $.ajax({
       type: "POST",
-      url: handlerUrl,
+      url: runtime.handlerUrl(element, "scorm_get_value"),
       data: JSON.stringify({ name: cmi_element }),
-      async: false,
+      async: true,
+      success: function (response) {
+        return response.value
+      }
     });
-    response = JSON.parse(response.responseText);
-    return response.value;
   };
 
   var SetValue = function (cmi_element, value) {
-    var handlerUrl = runtime.handlerUrl(element, "scorm_set_value");
-
     $.ajax({
       type: "POST",
-      url: handlerUrl,
+      url: runtime.handlerUrl(element, "scorm_set_value"),
       data: JSON.stringify({ name: cmi_element, value: value }),
-      async: false,
+      async: true,
       success: function (response) {
         if (typeof response.lesson_score != "undefined") {
           $(".lesson_score", element).html(response.lesson_score);
@@ -85,7 +82,6 @@ function ScormXBlock(runtime, element, settings) {
         $(".completion_status", element).html(response.completion_status);
       },
     });
-    return "true";
   };
 
   var GetAPI = function () {
@@ -153,10 +149,6 @@ function ScormXBlock(runtime, element, settings) {
     }
 
     function handleClick(event) {
-      // console.log(event);
-      // console.log(event.target);
-      // console.log(event.currentTarget);
-      // console.log(event.currentTarget.body);
       let element = event.currentTarget.body;
       GoInFullscreen(element)
         .then(function () {
@@ -185,9 +177,6 @@ function ScormXBlock(runtime, element, settings) {
           popupWindow.document.close();
           setTimeout(function () {
             let i = popupWindow.frames[0];
-            //console.log($.browser.mozilla);
-            //console.log(i.mejs);
-            //console.log(Object.keys(i.mejs.players).length);
             if (
               $.browser.mozilla &&
               i.mejs &&
