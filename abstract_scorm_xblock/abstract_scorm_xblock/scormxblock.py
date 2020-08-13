@@ -374,9 +374,9 @@ class AbstractScormXBlock(XBlock):
         """A canned scenario for display in the workbench."""
         return [
             (
-                "ScormXBlock",
+                "AbstractScormXBlock",
                 """<vertical_demo>
-                <scormxblock/>
+                <abstract_scorm_xblock/>
                 </vertical_demo>
             """,
             ),
