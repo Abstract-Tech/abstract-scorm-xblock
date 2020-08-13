@@ -6,7 +6,8 @@ from django.template import Context, Template
 
 
 def gettext(text):
-    """ Dummy `gettext` replacement to make string extraction tools scrape strings marked for translation """
+    """Dummy `gettext` replacement to make string extraction
+    tools scrape strings marked for translation """
     return text
 
 

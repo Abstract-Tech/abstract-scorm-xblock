@@ -13,7 +13,7 @@ from django.conf.urls import url
 
 def scormxblock_serve(request, md5, path):
     """
-    Proxy MinIO storage files in order to avoid SAMEORIGIN issues.
+    Proxy files from the Django default storage in order to avoid SAMEORIGIN issues.
     """
     path = posixpath.normpath(unquote(path)).lstrip("/")
     fullpath = os.path.join(settings.STORAGE_SCORM_PATH, md5, path)

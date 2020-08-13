@@ -111,7 +111,7 @@ class AbstractScormXBlock(XBlock):
     _lesson_score = Float(scope=Scope.user_state, default=0)
 
     def student_view(self, context=None):
-        self._check_scorm_package_is_extracted()
+        self._ensure_scorm_package_is_extracted()
 
         template = render_template(
             "static/html/scormxblock.html",
@@ -137,7 +137,7 @@ class AbstractScormXBlock(XBlock):
         return fragment
 
     def studio_view(self, context=None):
-        self._check_scorm_package_is_extracted()
+        self._ensure_scorm_package_is_extracted()
 
         template = render_template(
             "static/html/studio.html",
@@ -263,14 +263,6 @@ class AbstractScormXBlock(XBlock):
             completion_status = self._success_status
         return completion_status
 
-    def _set_scorm_url(self, scorm_md5):
-        # We can't load the scorm file directly from the default_storage URL
-        # since it will be blocked by the SAMEORIGIN policy
-        self._scorm_url = reverse(
-            "abstract_scorm_xblock:scorm_serve",
-            kwargs={"md5": scorm_md5, "path": self.scorm_index,},
-        )
-
     def _read_scorm_manifest(self, scorm_path):
         manifest_path = os.path.join(scorm_path, "imsmanifest.xml")
         try:
@@ -278,7 +270,15 @@ class AbstractScormXBlock(XBlock):
         except IOError:
             raise ScormManifestNotFoundException()
 
-    def _set_scorm_index(self, manifest):
+    def _update_scorm_url(self, scorm_md5):
+        # We can't load the scorm file directly from the default_storage URL
+        # since it will be blocked by the SAMEORIGIN policy
+        self._scorm_url = reverse(
+            "abstract_scorm_xblock:scorm_serve",
+            kwargs={"md5": scorm_md5, "path": self.scorm_index},
+        )
+
+    def _update_scorm_index(self, manifest):
         if not self.scorm_index:
             try:
                 self.scorm_index = (
@@ -287,7 +287,7 @@ class AbstractScormXBlock(XBlock):
             except (IOError, AttributeError):
                 self.scorm_index = "index.html"
 
-    def _set_scorm_version(self, manifest):
+    def _update_scorm_version(self, manifest):
         try:
             self._scorm_version = (
                 etree.fromstring(manifest).find(".//{*}schemaversion").text
@@ -331,20 +331,18 @@ class AbstractScormXBlock(XBlock):
                     )
         return scorm_path
 
-    def _check_scorm_package_is_extracted(self):
+    def _ensure_scorm_package_is_extracted(self):
         scorm_package = self._search_scorm_package()
         scorm_path = self._extract_scorm_package(scorm_package)
         return scorm_package, scorm_path
 
     def _save_scorm_package(self):
         if self.scorm_file:
-            scorm_package, scorm_path = self._check_scorm_package_is_extracted()
+            scorm_package, scorm_path = self._ensure_scorm_package_is_extracted()
             manifest = self._read_scorm_manifest(scorm_path)
-            self._set_scorm_version(manifest)
-            if not self.scorm_index:
-                self._set_scorm_index(manifest)
-
-            self._set_scorm_url(scorm_package["md5"])
+            self._update_scorm_version(manifest)
+            self._update_scorm_index(manifest)
+            self._update_scorm_url(scorm_package["md5"])
 
     @staticmethod
     def workbench_scenarios():

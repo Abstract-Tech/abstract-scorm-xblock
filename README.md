@@ -62,9 +62,9 @@ The first time this command is run it will initialize the test database. Remove 
 
 ## TODO
 
-* Update tests
-* Delete old SCORM packages
+- Update tests
+- Delete old SCORM packages
 
 ## Caveats
 
-* If a SCORM package is deleted from the course "Files & Uploads" section of the course the Import/Export functionality will export a course with a broken XBlock.
+- If a SCORM package is deleted from the course "Files & Uploads" section of the course the Import/Export functionality will export a course with a broken XBlock.
