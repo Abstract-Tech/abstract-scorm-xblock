@@ -24,13 +24,13 @@ class AbstractScormXBlockAppConfig(AppConfig):
         },
         PluginSettings.CONFIG: {
             ProjectType.LMS: {
-                SettingsType.AWS: {PluginSettings.RELATIVE_PATH: "app"},
+                SettingsType.PRODUCTION: {PluginSettings.RELATIVE_PATH: "app"},
                 SettingsType.COMMON: {PluginSettings.RELATIVE_PATH: "app"},
                 SettingsType.DEVSTACK: {PluginSettings.RELATIVE_PATH: "app"},
                 SettingsType.TEST: {PluginSettings.RELATIVE_PATH: "app"},
             },
             ProjectType.CMS: {
-                SettingsType.AWS: {PluginSettings.RELATIVE_PATH: "app"},
+                SettingsType.PRODUCTION: {PluginSettings.RELATIVE_PATH: "app"},
                 SettingsType.COMMON: {PluginSettings.RELATIVE_PATH: "app"},
                 SettingsType.DEVSTACK: {PluginSettings.RELATIVE_PATH: "app"},
                 SettingsType.TEST: {PluginSettings.RELATIVE_PATH: "app"},
