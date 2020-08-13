@@ -17,9 +17,10 @@ from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, Integer
 from xblock.fragment import Fragment
 
-from .exceptions import ScormManifestNotFoundException, ScormPackageNotFoundException
 from .utils import gettext as _
 from .utils import resource_string, render_template
+from .constants import ScormVersions
+from .exceptions import ScormManifestNotFoundException, ScormPackageNotFoundException
 
 
 logger = logging.getLogger(__name__)
@@ -104,7 +105,9 @@ class AbstractScormXBlock(XBlock):
     _scorm_url = String(
         display_name=_("SCORM file URL"), default="", scope=Scope.settings,
     )
-    _scorm_version = String(default="1.2", scope=Scope.settings,)
+    _scorm_version = String(
+        default=ScormVersions["SCORM_12"].value, scope=Scope.settings
+    )
     # save completion_status for SCORM_2004
     _lesson_status = String(scope=Scope.user_state, default="not attempted")
     _success_status = String(scope=Scope.user_state, default="unknown")
@@ -264,7 +267,7 @@ class AbstractScormXBlock(XBlock):
 
     def _publish_grade(self):
         if self._lesson_status == "failed" or (
-            self._scorm_version.startswith("2004")
+            ScormVersions(self._scorm_version) > ScormVersions["SCORM_12"]
             and self._success_status in ["failed", "unknown"]
         ):
             self.runtime.publish(self, "grade", {"value": 0, "max_value": self.weight})
@@ -275,7 +278,10 @@ class AbstractScormXBlock(XBlock):
 
     def _get_completion_status(self):
         completion_status = self._lesson_status
-        if self._scorm_version.startswith("2004") and self._success_status != "unknown":
+        if (
+            ScormVersions(self._scorm_version) > ScormVersions["SCORM_12"]
+            and self._success_status != "unknown"
+        ):
             completion_status = self._success_status
         return completion_status
 
@@ -309,7 +315,7 @@ class AbstractScormXBlock(XBlock):
                 etree.fromstring(manifest).find(".//{*}schemaversion").text
             )
         except (IOError, AttributeError):
-            self._scorm_version = "1.2"
+            self._scorm_version = ScormVersions["SCORM_12"].value
 
     def _search_scorm_package(self):
         scorm_content, count = contentstore().get_all_content_for_course(

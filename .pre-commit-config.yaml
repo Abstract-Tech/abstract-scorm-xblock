@@ -11,7 +11,7 @@ repos:
         args:
           - --max-line-length=88
           - --select=C,E,F,W,B,B950
-          - --ignore=E203,E501,W503
+          - --ignore=E203,E501,W503,W504
 
   - repo: https://github.com/ambv/black
     rev: 19.10b0
