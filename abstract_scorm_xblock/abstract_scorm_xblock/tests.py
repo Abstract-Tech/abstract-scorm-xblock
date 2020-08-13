@@ -4,126 +4,64 @@ import json
 import mock
 import unittest
 
-from ddt import ddt, data
+import ddt
+
 from freezegun import freeze_time
 from xblock.field_data import DictFieldData
 
-from scormxblock import ScormXBlock
+from .constants import ScormVersions
+from .scormxblock import AbstractScormXBlock
 
 
-@ddt
-class ScormXBlockTests(unittest.TestCase):
-    def make_one(self, **kw):
+@ddt.ddt
+class AbstractScormXBlockTests(unittest.TestCase):
+    def make_one(self, **kwargs):
         """
-        Creates a ScormXBlock for testing purpose.
+        Creates a AbstractScormXBlock for testing purpose.
         """
-        field_data = DictFieldData(kw)
-        block = ScormXBlock(mock.Mock(), field_data, mock.Mock())
+        field_data = DictFieldData(kwargs)
+        block = AbstractScormXBlock(mock.Mock(), field_data, mock.Mock())
         block.location = mock.Mock(
             block_id="block_id", org="org", course="course", block_type="block_type"
         )
         return block
 
     def test_fields_xblock(self):
-        block = self.make_one()
-        self.assertEqual(block.display_name, "Scorm")
-        self.assertEqual(block.scorm_file, None)
-        self.assertEqual(block.scorm_file_meta, {})
-        self.assertEqual(block.version_scorm, "SCORM_12")
-        self.assertEqual(block.lesson_status, "not attempted")
-        self.assertEqual(block.success_status, "unknown")
-        self.assertEqual(block.data_scorm, {})
-        self.assertEqual(block.lesson_score, 0)
-        self.assertEqual(block.weight, 1)
-        self.assertEqual(block.has_score, True)
-        self.assertEqual(block.icon_class, "video")
-        self.assertEqual(block.width, None)
-        self.assertEqual(block.height, 450)
+        xblock = self.make_one()
+        self.assertEqual(xblock.display_name, "SCORM unit")
+        self.assertEqual(xblock.scorm_file, "")
+        self.assertEqual(xblock.scorm_index, "")
+        self.assertEqual(xblock.lesson_score, 0)
+        self.assertEqual(xblock.has_score, True)
+        self.assertEqual(xblock.icon_class, "problem")
+        self.assertEqual(xblock.width, None)
+        self.assertEqual(xblock.height, 450)
+        self.assertEqual(xblock.popup, False)
+        self.assertEqual(xblock.autoopen, False)
+        self.assertEqual(xblock.allowopeninplace, False)
+        self.assertEqual(xblock.weight, 1)
+        self.assertEqual(xblock._scorm_version, ScormVersions["SCORM_12"].value)
+        self.assertEqual(xblock._lesson_status, "not attempted")
+        self.assertEqual(xblock._success_status, "unknown")
 
     def test_save_settings_scorm(self):
-        block = self.make_one()
+        xblock = self.make_one()
 
         fields = {
-            "display_name": "Test Block",
+            "display_name": "Test SCORM XBlock",
             "has_score": "True",
-            "file": None,
+            "icon_class": "video",
+            "scorm_file": "",
             "width": 800,
             "height": 450,
         }
 
-        block.studio_submit(mock.Mock(method="POST", params=fields))
-        self.assertEqual(block.display_name, fields["display_name"])
-        self.assertEqual(block.has_score, fields["has_score"])
-        self.assertEqual(block.icon_class, "problem")
-        self.assertEqual(block.width, 800)
-        self.assertEqual(block.height, 450)
-
-    @freeze_time("2018-05-01")
-    @mock.patch("scormxblock.ScormXBlock.set_fields_xblock")
-    @mock.patch("scormxblock.scormxblock.shutil")
-    @mock.patch("scormxblock.scormxblock.SCORM_ROOT")
-    @mock.patch("scormxblock.scormxblock.os")
-    @mock.patch("scormxblock.scormxblock.zipfile")
-    @mock.patch("scormxblock.scormxblock.File", return_value="call_file")
-    @mock.patch("scormxblock.scormxblock.default_storage")
-    @mock.patch(
-        "scormxblock.ScormXBlock._file_storage_path", return_value="file_storage_path"
-    )
-    @mock.patch("scormxblock.ScormXBlock.get_sha1", return_value="sha1")
-    def test_save_scorm_zipfile(
-        self,
-        get_sha1,
-        file_storage_path,
-        default_storage,
-        mock_file,
-        zipfile,
-        mock_os,
-        SCORM_ROOT,
-        shutil,
-        set_fields_xblock,
-    ):
-        block = self.make_one()
-        mock_file_object = mock.Mock()
-        mock_file_object.configure_mock(name="scorm_file_name")
-        default_storage.configure_mock(size=mock.Mock(return_value="1234"))
-        mock_os.configure_mock(path=mock.Mock(join=mock.Mock(return_value="path_join")))
-
-        fields = {
-            "display_name": "Test Block",
-            "has_score": "True",
-            "file": mock.Mock(file=mock_file_object),
-            "width": None,
-            "height": 450,
-        }
-
-        block.studio_submit(mock.Mock(method="POST", params=fields))
-
-        expected_scorm_file_meta = {
-            "path": "file_storage_path",
-            "sha1": "sha1",
-            "name": "scorm_file_name",
-            "last_updated": "2018-05-01T00:00:00.000000",
-            "size": "1234",
-        }
-
-        get_sha1.assert_called_once_with(mock_file_object)
-        file_storage_path.assert_called_once_with()
-        default_storage.exists.assert_called_once_with("file_storage_path")
-        default_storage.delete.assert_called_once_with("file_storage_path")
-        default_storage.save.assert_called_once_with("file_storage_path", "call_file")
-        mock_file.assert_called_once_with(mock_file_object)
-
-        self.assertEqual(block.scorm_file_meta, expected_scorm_file_meta)
-
-        zipfile.ZipFile.assert_called_once_with(
-            mock_file_object.temporary_file_path(), "r"
-        )
-        mock_os.path.join.assert_called_once_with(SCORM_ROOT, "block_id")
-        mock_os.path.exists.assert_has_calls(
-            [mock.call(SCORM_ROOT), mock.call("path_join")]
-        )
-        shutil.rmtree.assert_called_once_with("path_join")
-        set_fields_xblock.assert_called_once_with("path_join")
+        xblock.studio_submit(mock.Mock(method="POST", params=fields))
+        self.assertEqual(xblock.display_name, fields["display_name"])
+        self.assertEqual(xblock.has_score, fields["has_score"])
+        self.assertEqual(xblock.icon_class, "video")
+        self.assertEqual(xblock.width, 800)
+        self.assertEqual(xblock.height, 450)
 
     def test_build_file_storage_path(self):
         block = self.make_one(
@@ -135,9 +73,9 @@ class ScormXBlockTests(unittest.TestCase):
         self.assertEqual(file_storage_path, "org/course/block_type/block_id/sha1.html")
 
     @mock.patch(
-        "scormxblock.ScormXBlock._file_storage_path", return_value="file_storage_path"
+        "scormxblock.AbstractScormXBlock._file_storage_path", return_value="file_storage_path"
     )
-    @mock.patch("scormxblock.scormxblock.default_storage")
+    @mock.patch("scormxblock.Abstractscormxblock.default_storage")
     def test_student_view_data(self, default_storage, file_storage_path):
         block = self.make_one(
             scorm_file="test_scorm_file",
@@ -160,11 +98,11 @@ class ScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "scormxblock.ScormXBlock.get_completion_status",
+        "scormxblock.AbstractScormXBlock.get_completion_status",
         return_value="completion_status",
     )
-    @mock.patch("scormxblock.ScormXBlock.publish_grade")
-    @data(
+    @mock.patch("scormxblock.AbstractScormXBlock.publish_grade")
+    @ddt.data(
         {"name": "cmi.core.lesson_status", "value": "completed"},
         {"name": "cmi.completion_status", "value": "failed"},
         {"name": "cmi.success_status", "value": "unknown"},
@@ -194,10 +132,10 @@ class ScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "scormxblock.ScormXBlock.get_completion_status",
+        "scormxblock.AbstractScormXBlock.get_completion_status",
         return_value="completion_status",
     )
-    @data(
+    @ddt.data(
         {"name": "cmi.core.score.raw", "value": "20"},
         {"name": "cmi.score.raw", "value": "20"},
     )
@@ -222,10 +160,10 @@ class ScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "scormxblock.ScormXBlock.get_completion_status",
+        "scormxblock.AbstractScormXBlock.get_completion_status",
         return_value="completion_status",
     )
-    @data(
+    @ddt.data(
         {"name": "cmi.core.lesson_location", "value": 1},
         {"name": "cmi.location", "value": 2},
         {"name": "cmi.suspend_data", "value": [1, 2]},
@@ -246,7 +184,7 @@ class ScormXBlockTests(unittest.TestCase):
             {"completion_status": "completion_status", "result": "success"},
         )
 
-    @data(
+    @ddt.data(
         {"name": "cmi.core.lesson_status"},
         {"name": "cmi.completion_status"},
         {"name": "cmi.success_status"},
@@ -260,7 +198,7 @@ class ScormXBlockTests(unittest.TestCase):
 
         self.assertEqual(response.json, {"value": "status"})
 
-    @data(
+    @ddt.data(
         {"name": "cmi.core.score.raw"}, {"name": "cmi.score.raw"},
     )
     def test_scorm_get_lesson_score(self, value):
@@ -272,7 +210,7 @@ class ScormXBlockTests(unittest.TestCase):
 
         self.assertEqual(response.json, {"value": 20})
 
-    @data(
+    @ddt.data(
         {"name": "cmi.core.lesson_location"},
         {"name": "cmi.location"},
         {"name": "cmi.suspend_data"},
