@@ -64,8 +64,8 @@ function ScormXBlock(runtime, element, settings) {
       data: JSON.stringify({ name: cmi_element }),
       async: true,
       success: function (response) {
-        return response.value
-      }
+        return response.value;
+      },
     });
   };
 
