@@ -72,12 +72,12 @@ class AbstractScormXBlock(XBlock):
     )
     width = Integer(
         display_name=_("Display Width (px)"),
-        help=_("Width of iframe, if empty, the default 100%"),
+        help=_("Width of the iframe. If empty defaults to 100%"),
         scope=Scope.settings,
     )
     height = Integer(
         display_name=_("Display Height (px)"),
-        help=_("Height of iframe"),
+        help=_("Height of iframe. If empty defaults to 450px"),
         default=450,
         scope=Scope.settings,
     )
@@ -100,6 +100,7 @@ class AbstractScormXBlock(XBlock):
         scope=Scope.settings,
     )
     weight = Float(default=1, scope=Scope.settings)
+    lesson_score = Float(scope=Scope.user_state, default=0)
     _scorm_url = String(
         display_name=_("SCORM file URL"), default="", scope=Scope.settings,
     )
@@ -108,10 +109,17 @@ class AbstractScormXBlock(XBlock):
     _lesson_status = String(scope=Scope.user_state, default="not attempted")
     _success_status = String(scope=Scope.user_state, default="unknown")
     _scorm_data = Dict(scope=Scope.user_state, default={})
-    _lesson_score = Float(scope=Scope.user_state, default=0)
 
-    def student_view(self, context=None):
-        self._ensure_scorm_package_is_extracted()
+    def student_view(self, context={}):
+        # TODO: We should be able to display an error message
+        # instead of trying to render an inexistent or problematic
+        # SCORM package
+        try:
+            self._ensure_scorm_package_is_extracted()
+        except ScormManifestNotFoundException as e:
+            logger.error(e)
+        except ScormPackageNotFoundException as e:
+            logger.error(e)
 
         template = render_template(
             "static/html/scormxblock.html",
@@ -136,8 +144,16 @@ class AbstractScormXBlock(XBlock):
         fragment.initialize_js("ScormXBlock", json_args=js_settings)
         return fragment
 
-    def studio_view(self, context=None):
-        self._ensure_scorm_package_is_extracted()
+    def studio_view(self, context={}):
+        # TODO: We should be able to display an error message
+        # instead of trying to render an inexistent or problematic
+        # SCORM package
+        try:
+            self._ensure_scorm_package_is_extracted()
+        except ScormManifestNotFoundException as e:
+            logger.error(e)
+        except ScormPackageNotFoundException as e:
+            logger.error(e)
 
         template = render_template(
             "static/html/studio.html",
@@ -211,16 +227,16 @@ class AbstractScormXBlock(XBlock):
         elif name == "cmi._success_status":
             return {"value": self._success_status}
         elif name in ["cmi.core.score.raw", "cmi.score.raw"]:
-            return {"value": self._lesson_score * 100}
+            return {"value": self.lesson_score * 100}
         else:
             return {"value": self._scorm_data.get(name, "")}
 
     @XBlock.json_handler
     def scorm_set_value(self, data, suffix=""):
-        context = {"result": "success"}
+        payload = {"result": "success"}
         name = data.get("name")
 
-        if name in ["cmi.core._lesson_status", "cmi.completion_status"]:
+        if name in ["cmi.core.lesson_status", "cmi.completion_status"]:
             self._lesson_status = data.get("value")
             if self.has_score and data.get("value") in [
                 "completed",
@@ -228,23 +244,23 @@ class AbstractScormXBlock(XBlock):
                 "passed",
             ]:
                 self._publish_grade()
-                context.update({"_lesson_score": self._lesson_score})
+                payload.update({"lesson_score": self.lesson_score})
         elif name == "cmi._success_status":
             self._success_status = data.get("value")
             if self.has_score:
                 if self._success_status == "unknown":
-                    self._lesson_score = 0
+                    self.lesson_score = 0
                 self._publish_grade()
-                context.update({"_lesson_score": self._lesson_score})
+                payload.update({"lesson_score": self.lesson_score})
         elif name in ["cmi.core.score.raw", "cmi.score.raw"] and self.has_score:
-            self._lesson_score = int(data.get("value", 0)) / 100.0
+            self.lesson_score = int(data.get("value", 0)) / 100.0
             self._publish_grade()
-            context.update({"_lesson_score": self._lesson_score})
+            payload.update({"lesson_score": self.lesson_score})
         else:
             self._scorm_data[name] = data.get("value", "")
 
-        context.update({"completion_status": self._get_completion_status()})
-        return context
+        payload.update({"completion_status": self._get_completion_status()})
+        return payload
 
     def _publish_grade(self):
         if self._lesson_status == "failed" or (
@@ -254,7 +270,7 @@ class AbstractScormXBlock(XBlock):
             self.runtime.publish(self, "grade", {"value": 0, "max_value": self.weight})
         else:
             self.runtime.publish(
-                self, "grade", {"value": self._lesson_score, "max_value": self.weight}
+                self, "grade", {"value": self.lesson_score, "max_value": self.weight}
             )
 
     def _get_completion_status(self):
@@ -343,6 +359,9 @@ class AbstractScormXBlock(XBlock):
             self._update_scorm_version(manifest)
             self._update_scorm_index(manifest)
             self._update_scorm_url(scorm_package["md5"])
+        else:
+            self._scorm_url = ""
+            self._scorm_version = ""
 
     @staticmethod
     def workbench_scenarios():

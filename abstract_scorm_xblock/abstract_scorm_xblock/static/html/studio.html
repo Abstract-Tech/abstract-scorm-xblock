@@ -48,7 +48,7 @@
     <li class="field comp-setting-entry is-set">
       <div class="wrapper-comp-setting">
         <label class="label setting-label" for="width">{% trans width_field.display_name %}</label>
-        <input class="input setting-input" name="width" id="width_field" value="{{ scorm_xblock.width }}" type="number" />
+        <input class="input setting-input" name="width" id="width_field" value="{% if scorm_xblock.width %}{{ scorm_xblock.width }}{% endif %}" type="number" />
       </div>
       <span class="tip setting-help">{% trans width_field.help %}</span>
     </li>
