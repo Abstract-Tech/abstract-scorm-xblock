@@ -10,7 +10,6 @@ setup(
     description="Load SCORM packages into Open edX courses",
     packages=["abstract_scorm_xblock"],
     install_requires=["XBlock"],
-    tests_require=["freezegun==0.3.11"],
     entry_points={
         "xblock.v1": [
             "abstract_scorm_xblock = abstract_scorm_xblock.scormxblock:AbstractScormXBlock"

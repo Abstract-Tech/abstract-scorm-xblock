@@ -1,2 +1,1 @@
 -e ./abstract_scorm_xblock
-freezegun==0.3.11

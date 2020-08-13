@@ -6,7 +6,6 @@ import unittest
 
 import ddt
 
-from freezegun import freeze_time
 from xblock.field_data import DictFieldData
 
 from .constants import ScormVersions
@@ -73,7 +72,8 @@ class AbstractScormXBlockTests(unittest.TestCase):
         self.assertEqual(file_storage_path, "org/course/block_type/block_id/sha1.html")
 
     @mock.patch(
-        "scormxblock.AbstractScormXBlock._file_storage_path", return_value="file_storage_path"
+        "scormxblock.AbstractScormXBlock._file_storage_path",
+        return_value="file_storage_path",
     )
     @mock.patch("scormxblock.Abstractscormxblock.default_storage")
     def test_student_view_data(self, default_storage, file_storage_path):
