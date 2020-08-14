@@ -62,65 +62,30 @@ class AbstractScormXBlockTests(unittest.TestCase):
         self.assertEqual(xblock.width, 800)
         self.assertEqual(xblock.height, 450)
 
-    def test_build_file_storage_path(self):
-        block = self.make_one(
-            scorm_file_meta={"sha1": "sha1", "name": "scorm_file_name.html"}
-        )
-
-        file_storage_path = block._file_storage_path()
-
-        self.assertEqual(file_storage_path, "org/course/block_type/block_id/sha1.html")
-
     @mock.patch(
-        "scormxblock.AbstractScormXBlock._file_storage_path",
-        return_value="file_storage_path",
-    )
-    @mock.patch("scormxblock.Abstractscormxblock.default_storage")
-    def test_student_view_data(self, default_storage, file_storage_path):
-        block = self.make_one(
-            scorm_file="test_scorm_file",
-            scorm_file_meta={"last_updated": "2018-05-01", "size": 1234},
-        )
-        default_storage.configure_mock(url=mock.Mock(return_value="url_zip_file"))
-
-        student_view_data = block.student_view_data()
-
-        file_storage_path.assert_called_once_with()
-        default_storage.url.assert_called_once_with("file_storage_path")
-        self.assertEqual(
-            student_view_data,
-            {
-                "index_page": None,
-                "last_modified": "2018-05-01",
-                "scorm_data": "url_zip_file",
-                "size": 1234,
-            },
-        )
-
-    @mock.patch(
-        "scormxblock.AbstractScormXBlock.get_completion_status",
+        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
         return_value="completion_status",
     )
-    @mock.patch("scormxblock.AbstractScormXBlock.publish_grade")
+    @mock.patch("abstract_scorm_xblock.scormxblock.AbstractScormXBlock._publish_grade")
     @ddt.data(
         {"name": "cmi.core.lesson_status", "value": "completed"},
         {"name": "cmi.completion_status", "value": "failed"},
         {"name": "cmi.success_status", "value": "unknown"},
     )
-    def test_set_status(self, value, publish_grade, get_completion_status):
+    def test_set_status(self, value, _publish_grade, _get_completion_status):
         block = self.make_one(has_score=True)
 
         response = block.scorm_set_value(
             mock.Mock(method="POST", body=json.dumps(value))
         )
 
-        publish_grade.assert_called_once_with()
-        get_completion_status.assert_called_once_with()
+        _publish_grade.assert_called_once_with()
+        _get_completion_status.assert_called_once_with()
 
         if value["name"] == "cmi.success_status":
             self.assertEqual(block.success_status, value["value"])
         else:
-            self.assertEqual(block.lesson_status, value["value"])
+            self.assertEqual(block._lesson_status, value["value"])
 
         self.assertEqual(
             response.json,
@@ -132,21 +97,21 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "scormxblock.AbstractScormXBlock.get_completion_status",
+        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
         return_value="completion_status",
     )
     @ddt.data(
         {"name": "cmi.core.score.raw", "value": "20"},
         {"name": "cmi.score.raw", "value": "20"},
     )
-    def test_set_lesson_score(self, value, get_completion_status):
+    def test_set_lesson_score(self, value, _get_completion_status):
         block = self.make_one(has_score=True)
 
         response = block.scorm_set_value(
             mock.Mock(method="POST", body=json.dumps(value))
         )
 
-        get_completion_status.assert_called_once_with()
+        _get_completion_status.assert_called_once_with()
 
         self.assertEqual(block.lesson_score, 0.2)
 
@@ -160,7 +125,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "scormxblock.AbstractScormXBlock.get_completion_status",
+        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
         return_value="completion_status",
     )
     @ddt.data(
@@ -168,16 +133,16 @@ class AbstractScormXBlockTests(unittest.TestCase):
         {"name": "cmi.location", "value": 2},
         {"name": "cmi.suspend_data", "value": [1, 2]},
     )
-    def test_set_other_scorm_values(self, value, get_completion_status):
+    def test_set_other_scorm_values(self, value, _get_completion_status):
         block = self.make_one(has_score=True)
 
         response = block.scorm_set_value(
             mock.Mock(method="POST", body=json.dumps(value))
         )
 
-        get_completion_status.assert_called_once_with()
+        _get_completion_status.assert_called_once_with()
 
-        self.assertEqual(block.data_scorm[value["name"]], value["value"])
+        self.assertEqual(block._scorm_data[value["name"]], value["value"])
 
         self.assertEqual(
             response.json,
@@ -185,12 +150,12 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
     @ddt.data(
-        {"name": "cmi.core.lesson_status"},
+        {"name": "cmi.core._lesson_status"},
         {"name": "cmi.completion_status"},
-        {"name": "cmi.success_status"},
+        {"name": "cmi._success_status"},
     )
     def test_scorm_get_status(self, value):
-        block = self.make_one(lesson_status="status", success_status="status")
+        block = self.make_one(_lesson_status="status", _success_status="status")
 
         response = block.scorm_get_value(
             mock.Mock(method="POST", body=json.dumps(value))
@@ -217,7 +182,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
     )
     def test_get_other_scorm_values(self, value):
         block = self.make_one(
-            data_scorm={
+            _scorm_data={
                 "cmi.core.lesson_location": 1,
                 "cmi.location": 2,
                 "cmi.suspend_data": [1, 2],
@@ -228,4 +193,4 @@ class AbstractScormXBlockTests(unittest.TestCase):
             mock.Mock(method="POST", body=json.dumps(value))
         )
 
-        self.assertEqual(response.json, {"value": block.data_scorm[value["name"]]})
+        self.assertEqual(response.json, {"value": block._scorm_data[value["name"]]})
