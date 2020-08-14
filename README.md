@@ -65,11 +65,10 @@ Tests can be run from the derex project directory by running:
 
 The first time this command is run it will initialize the test database. Remove the `--keepdb` flag if you want the test database to be created/destroyed each time.
 
-## TODO
-
-- Update tests
-- Delete old SCORM packages
-
 ## Caveats
 
 - If a SCORM package is deleted from the course "Files & Uploads" section, the Import/Export functionality will export a course with a broken XBlock.
+
+## TODO
+
+- Delete extracted old SCORM packages from default storage
