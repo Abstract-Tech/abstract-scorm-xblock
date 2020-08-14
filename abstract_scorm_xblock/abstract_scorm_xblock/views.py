@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import mimetypes
 import os
 import posixpath
