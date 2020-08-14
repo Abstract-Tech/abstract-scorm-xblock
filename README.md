@@ -1,7 +1,12 @@
 # Abstract Scorm XBlock
 
-XBlock to display SCORM content within the Open edX LMS. Editable within Open edx Studio. Will save student state and report scores to the progress tab of the course.
-Currently supports SCORM 1.2 and SCORM 2004 standard.
+Yet another SCORM XBlock for Open edX®.
+
+Supports course export/import. Editable within Open edx Studio. Saves student state and reports scores to the progress tab of the course.
+Currently supports SCORM 1.2 and SCORM 2004 standards.
+
+Developed by [Abstract Technology](https://abstract-technology.de/), based on [edx_xblock_scorm](https://github.com/raccoongang/edx_xblock_scorm/) by [Raccoon Gang
+](https://raccoongang.com/).
 
 Block displays SCORM which saved as `File -> Export -> Web Site -> Zip File`
 Block displays SCORM which saved as `File -> Export -> SCORM 1.2`
