@@ -227,7 +227,7 @@ class AbstractScormXBlock(XBlock):
         name = data.get("name")
         if name in ["cmi.core._lesson_status", "cmi.completion_status"]:
             return {"value": self._lesson_status}
-        elif name == "cmi._success_status":
+        elif name == "cmi.success_status":
             return {"value": self._success_status}
         elif name in ["cmi.core.score.raw", "cmi.score.raw"]:
             return {"value": self.lesson_score * 100}
@@ -248,7 +248,7 @@ class AbstractScormXBlock(XBlock):
             ]:
                 self._publish_grade()
                 payload.update({"lesson_score": self.lesson_score})
-        elif name == "cmi._success_status":
+        elif name == "cmi.success_status":
             self._success_status = data.get("value")
             if self.has_score:
                 if self._success_status == "unknown":
