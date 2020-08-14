@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<div class="scormxblock_block" id="scormxblock_{{ scorm_xblock.url_name }}">
+    {% if scorm_xblock.has_score %}
+    <p class="scormxblock_score">
+        (<span class="lesson_score">{{ scorm_xblock.lesson_score }}</span>/{{ scorm_xblock.weight }} {% trans "points" %})
+        <span class="scormxblock_completion completion_status">{% trans completion_status %}</span>
+    </p>
+    {% endif %}
+
+    <div class="scorm_window">
+    {% if scorm_xblock.popup %}
+        <p class="scorm_popup_warning" style="display: none">
+            {% trans "We launched your course in a new window but if you do not see it, a popup blocker may be preventing it from opening. Please disable popup blockers for this site." %}
+        </p>
+        <button class="scorm_launch">{% trans "Open in popup" %} {{ scorm_xblock.display_name }}</button>
+        {% if scorm_xblock.allowopeninplace %}
+        <button class="scorm_show">{% trans "Open here" %} {{ scorm_xblock.display_name }}</button>
+        {% endif %}
+    {% endif %}
+    </div>
+</div>

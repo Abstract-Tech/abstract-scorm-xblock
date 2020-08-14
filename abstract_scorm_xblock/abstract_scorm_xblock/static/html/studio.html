@@ -1,0 +1,113 @@
+{% load i18n %}
+
+<div class="wrapper-comp-settings is-active editor-with-buttons" id="settings-tab">
+  <ul class="list-input settings-list">
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="display_name">{% trans display_name_field.display_name %}</label>
+        <input class="input setting-input" name="display_name" id="display_name_field" value="{{ scorm_xblock.display_name }}" type="text" />
+      </div>
+      <span class="tip setting-help">{% trans display_name_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="scorm_file">{% trans scorm_file_field.display_name %}</label>
+        <input class="input setting-input" name="scorm_file" id="scorm_file_field" value="{{ scorm_xblock.scorm_file }}" type="text" />
+      </div>
+      <span class="tip setting-help">{% trans scorm_file_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="scorm_index">{% trans scorm_index_field.display_name %}</label>
+        <input class="input setting-input" name="scorm_index" id="scorm_index_field" value="{{ scorm_xblock.scorm_index }}" type="text" />
+      </div>
+      <span class="tip setting-help">{% trans scorm_index_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="has_score">{% trans has_score_field.display_name %}</label>
+        <select name="has_score" id="has_score_field">
+          {% for option in has_score_field.values %}
+          <option value="{{ option.value }}" {% if option.value == scorm_xblock.has_score %}selected{% endif %}>{% trans option.display_name %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <span class="tip setting-help">{% trans has_score_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="icon_class">{% trans icon_class_field.display_name %}</label>
+        <select name="icon_class" id="icon_class_field">
+          {% for option in icon_class_field.values %}
+          <option value="{{ option.value }}" {% if option.value == scorm_xblock.icon_class %}selected{% endif %}>{% trans option.display_name %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <span class="tip setting-help">{% trans icon_class_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="width">{% trans width_field.display_name %}</label>
+        <input class="input setting-input" name="width" id="width_field" value="{% if scorm_xblock.width %}{{ scorm_xblock.width }}{% endif %}" type="number" />
+      </div>
+      <span class="tip setting-help">{% trans width_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <label class="label setting-label" for="height">{% trans height_field.display_name %}</label>
+        <input class="input setting-input" name="height" id="height_field" value="{{ scorm_xblock.height }}" type="number" />
+      </div>
+      <span class="tip setting-help">{% trans height_field.help %}</span>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <fieldset>
+          <label class="label setting-label" for="popup">{% trans popup_field.display_name %}</label>
+          <select name="popup" id="popup_field">
+          {% for option in popup_field.values %}
+            <option value="{{ option.value }}" {% if option.value == scorm_xblock.popup %}selected{% endif %}>{% trans option.display_name %}</option>
+          {% endfor %}
+          </select>
+        </fieldset>
+        <div class="setting-help" style="display:block">{{ popup_field.help }}</div>
+      </div>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <fieldset>
+          <label class="label setting-label" for="autoopen">{% trans autoopen_field.display_name %}</label>
+          <select name="autoopen" id="autoopen_field">
+          {% for option in autoopen_field.values %}
+            <option value="{{ option.value }}" {% if option.value == scorm_xblock.autoopen %}selected{% endif %}>{% trans option.display_name %}</option>
+          {% endfor %}
+          </select>
+        </fieldset>
+        <div class="setting-help" style="display:block">{{ autoopen_field.help }}</div>
+      </div>
+    </li>
+    <li class="field comp-setting-entry is-set">
+      <div class="wrapper-comp-setting">
+        <fieldset>
+          <label class="label setting-label" for="allowopeninplace">{% trans allowopeninplace_field.display_name %}</label>
+          <select name="allowopeninplace" id="allowopeninplace_field">
+          {% for option in allowopeninplace_field.values %}
+            <option value="{{ option.value }}" {% if option.value == scorm_xblock.allowopeninplace %}selected{% endif %}>{% trans option.display_name %}</option>
+          {% endfor %}
+          </select>
+        </fieldset>
+        <div class="setting-help" style="display:block">{{ allowopeninplace_field.help }}</div>
+      </div>
+    </li>
+
+  </ul>
+  <div class="xblock-actions">
+    <ul>
+      <li class="action-item">
+        <a href="#" class="button action-primary save-button">{% trans "Save" %}</a>
+      </li>
+      <li class="action-item">
+        <a href="#" class="button cancel-button">{% trans "Cancel" %}</a>
+      </li>
+    </ul>
+  </div>
+</div>
