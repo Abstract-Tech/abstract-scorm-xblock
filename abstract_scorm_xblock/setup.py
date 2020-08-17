@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Setup for abstract_scorm_xblock XBlock."""
 
+import io
 from setuptools import setup
 
-
-with open("README.md") as readme_file:
+with io.open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 setup(
@@ -17,8 +17,10 @@ setup(
     install_requires=["XBlock"],
     include_package_data=True,
     keywords=["scorm", "xblock"],
-    author="Chiruzzi Marco, Silvio Tomatis",
-    author_email="chiruzzi.marco@gmail.com, silviot@gmail.com",
+    author="Alexander Marenich, Andrey Kryachko, Andrey Lykhoman, COTOHA, David Baumgold, Volodymyr Bergman, Maxim Starodubcev, Jorge Mora, Silvio Tomatis, kirkerafael, Oksana Slusarenro, Chiruzzi Marco",
+    author_email="sendr84@gmail.com, andrey.kryachko@raccoongang.com, andrey.likhoman@gmail.com, sergiy.movchan@gmail.com, david@davidbaumgold.com, wowkalucky@gmail.com, starodubcevmax@gmail.com, jorge.mora@innovapues.com, silviot@gmail.com, kirkerafael@gmail.com, oksana.slu@gmail.com, chiruzzi.marco@gmail.com",
+    maintainer="Silvio Tomatis, Chiruzzi Marco",
+    maintainer_email="silviot@gmail.com, chiruzzi.marco@gmail.com",
     url="https://github.com/Abstract-Tech/abstract-scorm-xblock",
     download_url="https://github.com/Abstract-Tech/abstract-scorm-xblock/archive/v1.0.tar.gz",
     license="Apache 2.0",
