@@ -16,7 +16,7 @@ setup(
     packages=["abstract_scorm_xblock"],
     install_requires=["XBlock"],
     include_package_data=True,
-    keywords = ['scorm', 'xblock']
+    keywords=["scorm", "xblock"],
     author="Chiruzzi Marco, Silvio Tomatis",
     author_email="chiruzzi.marco@gmail.com, silviot@gmail.com",
     url="https://github.com/Abstract-Tech/abstract-scorm-xblock",
