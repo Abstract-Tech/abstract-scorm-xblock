@@ -8,7 +8,7 @@ with io.open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 setup(
-    name="abstract_scorm_xblock",
+    name="abstract-scorm-xblock",
     version="1.0",
     description="Load SCORM packages into Open edX courses",
     long_description=readme,
