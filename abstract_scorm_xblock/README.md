@@ -44,11 +44,15 @@ In order to be able to develop and debug effectively some steps may be taken:
 
 - setup the package in editable mode. This will allow for testing changes without the need to reinstall the package:
 
-  `pip install -e /openedx/derex.requirements/abstract_scorm_xblock`
+  ```
+  pip install -e /openedx/derex.requirements/abstract_scorm_xblock
+  ```
 
 - launch the Django debug server manually and bind it on port `81`:
 
-  `python manage.py cms runserver 0:81`
+  ```
+  python manage.py cms runserver 0:81
+  ```
 
 - on your browser https://studio.scorm.localhost:81 should now be available. You should now be able to insert debug code in both Python and JS files and benefit from Django runserver auto reload feature.
 
@@ -56,7 +60,7 @@ In order to be able to develop and debug effectively some steps may be taken:
 
 Tests can be run from the derex project directory by running:
 
-    `ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb`
+    ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb
 
 The first time this command is run it will initialize the test database. Remove the `--keepdb` flag if you want the test database to be created/destroyed each time.
 
