@@ -8,22 +8,17 @@ Currently supports SCORM 1.2 and SCORM 2004 standards.
 Developed by [Abstract Technology](https://abstract-technology.de/), based on [edx_xblock_scorm](https://github.com/raccoongang/edx_xblock_scorm/) by [Raccoon Gang
 ](https://raccoongang.com/).
 
-Block displays SCORM which saved as `File -> Export -> Web Site -> Zip File`
-Block displays SCORM which saved as `File -> Export -> SCORM 1.2`
-
 ## Installation
 
-Install package
+Install package with
 
-    pip install git+https://github.com/Abstract-Tech/abstract-scorm-xblock.git#egg=abstract_scorm_xblock&subdirectory=abstract_scorm_xblock
-
-**WARNING: This package have to be installed using the `subdirectory` option.**
+    pip install abstract-scorm-xblock
 
 ## Usage
 
 - Add `abstract_scorm_xblock` to the list of advanced modules in the advanced settings of a course.
 - Add a `scorm` component to your Unit.
-- Upload a zip file containing your content package. **The `imsmanifest.xml` file must be at the root of the zipped package. Make sure you don't have an additional directory at the root of the Zip archive.**
+- Upload a zip file containing your content package. **The `imsmanifest.xml` file must be at the root of the zipped package. Make sure you don't have an additional directory at the root of the zip archive.**
 - Publish your content as usual.
 
 ## Development
