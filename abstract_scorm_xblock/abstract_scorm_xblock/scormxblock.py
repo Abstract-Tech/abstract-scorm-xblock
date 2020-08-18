@@ -189,7 +189,7 @@ class AbstractScormXBlock(XBlock):
         https://edx.readthedocs.io/projects/xblock/en/latest/xblock.html#xblock.core.XBlock.handler
         """
         self.display_name = request.params.get("display_name")
-        self.width = request.params["width"]
+        self.width = request.params.get("width")
         self.height = request.params.get("height")
         self.has_score = request.params.get("has_score")
         self.popup = request.params.get("popup")
