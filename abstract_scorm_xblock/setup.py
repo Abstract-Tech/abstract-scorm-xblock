@@ -9,7 +9,7 @@ with io.open("README.md", encoding="utf-8") as readme_file:
 
 setup(
     name="abstract-scorm-xblock",
-    version="1.0",
+    version="1.0.0",
     description="Load SCORM packages into Open edX courses",
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -22,7 +22,7 @@ setup(
     maintainer="Silvio Tomatis, Chiruzzi Marco",
     maintainer_email="silviot@gmail.com, chiruzzi.marco@gmail.com",
     url="https://github.com/Abstract-Tech/abstract-scorm-xblock",
-    download_url="https://github.com/Abstract-Tech/abstract-scorm-xblock/archive/v1.0.tar.gz",
+    download_url="https://github.com/Abstract-Tech/abstract-scorm-xblock/archive/v1.0.0.tar.gz",
     license="Apache 2.0",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
