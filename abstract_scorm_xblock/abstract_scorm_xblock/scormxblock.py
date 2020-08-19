@@ -320,7 +320,7 @@ class AbstractScormXBlock(XBlock):
 
     def _search_scorm_package(self):
         scorm_content, count = contentstore().get_all_content_for_course(
-            self.course_id,
+            self.runtime.course_id,
             filter_params={
                 "contentType": "application/zip",
                 "displayname": self.scorm_file,
