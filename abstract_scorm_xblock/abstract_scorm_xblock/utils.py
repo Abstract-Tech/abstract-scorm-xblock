@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import pkg_resources
 
 from django.template import Context, Template
