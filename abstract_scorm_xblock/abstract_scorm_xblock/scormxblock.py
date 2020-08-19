@@ -226,7 +226,7 @@ class AbstractScormXBlock(XBlock):
     @XBlock.json_handler
     def scorm_get_value(self, data, suffix=""):
         name = data.get("name")
-        if name in ["cmi.core._lesson_status", "cmi.completion_status"]:
+        if name in ["cmi.core.lesson_status", "cmi.completion_status"]:
             return {"value": self._lesson_status}
         elif name == "cmi.success_status":
             return {"value": self._success_status}

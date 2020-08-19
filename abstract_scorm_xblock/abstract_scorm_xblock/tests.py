@@ -148,7 +148,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
     @ddt.data(
-        {"name": "cmi.core._lesson_status"},
+        {"name": "cmi.core.lesson_status"},
         {"name": "cmi.completion_status"},
         {"name": "cmi.success_status"},
     )
