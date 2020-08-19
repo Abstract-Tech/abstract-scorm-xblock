@@ -197,7 +197,7 @@ class AbstractScormXBlock(XBlock):
         self.allowopeninplace = request.params.get("allowopeninplace")
         self.icon_class = request.params.get("icon_class")
         self.scorm_index = request.params.get("scorm_index") or ""
-        self.scorm_file = request.params["scorm_file"]
+        self.scorm_file = request.params.get("scorm_file")
 
         try:
             self._save_scorm_package()

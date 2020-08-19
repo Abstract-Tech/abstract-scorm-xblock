@@ -43,24 +43,22 @@ class AbstractScormXBlockTests(unittest.TestCase):
         self.assertEqual(xblock._lesson_status, "not attempted")
         self.assertEqual(xblock._success_status, "unknown")
 
-    def test_save_settings_scorm(self):
+    def test_studio_submit(self):
         xblock = self.make_one()
 
         fields = {
             "display_name": "Test SCORM XBlock",
             "has_score": "True",
             "icon_class": "video",
-            "scorm_file": "",
-            "width": 800,
-            "height": 450,
+            "height": 500,
         }
 
         xblock.studio_submit(mock.Mock(method="POST", params=fields))
         self.assertEqual(xblock.display_name, fields["display_name"])
         self.assertEqual(xblock.has_score, fields["has_score"])
         self.assertEqual(xblock.icon_class, "video")
-        self.assertEqual(xblock.width, 800)
-        self.assertEqual(xblock.height, 450)
+        self.assertEqual(xblock.width, None)
+        self.assertEqual(xblock.height, 500)
 
     @mock.patch(
         "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
