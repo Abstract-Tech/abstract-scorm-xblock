@@ -268,7 +268,8 @@ class AbstractScormXBlock(XBlock):
 
     def _publish_grade(self):
         if self._lesson_status == "failed" or (
-            ScormVersions(self._scorm_version) > ScormVersions["SCORM_12"]
+            self.scorm_file
+            and ScormVersions(self._scorm_version) > ScormVersions["SCORM_12"]
             and self._success_status in ["failed", "unknown"]
         ):
             self.runtime.publish(self, "grade", {"value": 0, "max_value": self.weight})
@@ -280,7 +281,8 @@ class AbstractScormXBlock(XBlock):
     def _get_completion_status(self):
         completion_status = self._lesson_status
         if (
-            ScormVersions(self._scorm_version) > ScormVersions["SCORM_12"]
+            self.scorm_file
+            and ScormVersions(self._scorm_version) > ScormVersions["SCORM_12"]
             and self._success_status != "unknown"
         ):
             completion_status = self._success_status
