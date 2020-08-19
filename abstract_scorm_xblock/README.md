@@ -12,7 +12,9 @@ Developed by [Abstract Technology](https://abstract-technology.de/), based on [e
 
 Install package with
 
-    pip install abstract-scorm-xblock
+```shell
+pip install abstract-scorm-xblock
+```
 
 ## Usage
 
@@ -29,7 +31,7 @@ To setup the development environment:
 
 - create a Python3 virtualenv. If direnv is installed a `direnv allow` should be enough.
 - install derex with `pip install -r requirements.txt`
-- setup the derex project. Read https://derex.page/quickstart.html#quickstart for further informations.
+- setup the derex project. Read [the documentation](https://derex.page/quickstart.html#quickstart) for further informations.
 
 ### Development and Debugging
 
@@ -37,30 +39,32 @@ In order to be able to develop and debug effectively some steps may be taken:
 
 - get a shell inside the container:
 
-  ```
+  ```shell
   cd derex_project
   ddc-project exec cms sh
   ```
 
 - setup the package in editable mode. This will allow for testing changes without the need to reinstall the package:
 
-  ```
+  ```shell
   pip install -e /openedx/derex.requirements/abstract_scorm_xblock
   ```
 
 - launch the Django debug server manually and bind it on port `81`:
 
-  ```
+  ```shell
   python manage.py cms runserver 0:81
   ```
 
-- on your browser https://studio.scorm.localhost:81 should now be available. You should now be able to insert debug code in both Python and JS files and benefit from Django runserver auto reload feature.
+- on your browser [https://studio.scorm.localhost:81](https://studio.scorm.localhost:81) should now be available. You should now be able to insert debug code in both Python and JS files and benefit from Django runserver auto reload feature.
 
 ### Running tests
 
 Tests can be run from the derex project directory by running:
 
-    ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb
+```shell
+ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb
+```
 
 The first time this command is run it will initialize the test database. Remove the `--keepdb` flag if you want the test database to be created/destroyed each time.
 
