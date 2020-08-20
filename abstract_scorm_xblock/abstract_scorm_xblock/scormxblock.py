@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import io
-import json
 import logging
 from zipfile import ZipFile
 
@@ -28,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractScormXBlock(XBlock):
-
     display_name = String(
         display_name=_("Display Name"),
         help=_("Display name for this module"),
@@ -101,13 +99,11 @@ class AbstractScormXBlock(XBlock):
         default=False,
         scope=Scope.settings,
     )
-    weight = Float(default=1, scope=Scope.settings)
+    weight = Float(scope=Scope.settings, default=1)
     lesson_score = Float(scope=Scope.user_state, default=0)
-    _scorm_url = String(
-        display_name=_("SCORM file URL"), default="", scope=Scope.settings,
-    )
+    _scorm_url = String(scope=Scope.settings, default="")
     _scorm_version = String(
-        default=ScormVersions["SCORM_12"].value, scope=Scope.settings
+        scope=Scope.settings, default=ScormVersions["SCORM_12"].value
     )
     # save completion_status for SCORM_2004
     _lesson_status = String(scope=Scope.user_state, default="not attempted")
@@ -121,9 +117,9 @@ class AbstractScormXBlock(XBlock):
         try:
             self._ensure_scorm_package_is_extracted()
         except ScormManifestNotFoundException as e:
-            logger.error(e)
+            logger.warning(e)
         except ScormPackageNotFoundException as e:
-            logger.error(e)
+            logger.warning(e)
 
         template = render_template(
             "static/html/scormxblock.html",
@@ -155,9 +151,9 @@ class AbstractScormXBlock(XBlock):
         try:
             self._ensure_scorm_package_is_extracted()
         except ScormManifestNotFoundException as e:
-            logger.error(e)
+            logger.warning(e)
         except ScormPackageNotFoundException as e:
-            logger.error(e)
+            logger.warning(e)
 
         template = render_template(
             "static/html/studio.html",
@@ -204,21 +200,19 @@ class AbstractScormXBlock(XBlock):
             self._save_scorm_package()
         except ScormManifestNotFoundException:
             return Response(
-                json.dumps({"field": "scorm_file", "message": "Invalid SCORM file"}),
+                json_body={"field": "scorm_file", "message": "Invalid SCORM file"},
                 content_type="application/json",
                 status=400,
             )
         except ScormPackageNotFoundException:
             return Response(
-                json.dumps(
-                    {"field": "scorm_file", "message": "SCORM package not found"}
-                ),
+                json_body={"field": "scorm_file", "message": "SCORM package not found"},
                 content_type="application/json",
                 status=404,
             )
 
         return Response(
-            json.dumps({"message": "XBlock saved successfully !"}),
+            json_body={"message": "XBlock saved successfully !"},
             content_type="application/json",
             status=200,
         )
@@ -293,7 +287,9 @@ class AbstractScormXBlock(XBlock):
         try:
             return default_storage.open(manifest_path).read()
         except IOError:
-            raise ScormManifestNotFoundException()
+            raise ScormManifestNotFoundException(
+                'Scorm manifest "{}" not found'.format(manifest_path)
+            )
 
     def _update_scorm_url(self, scorm_md5):
         # We can't load the scorm file directly from the default_storage URL
@@ -329,7 +325,9 @@ class AbstractScormXBlock(XBlock):
             },
         )
         if not count:
-            raise ScormPackageNotFoundException()
+            raise ScormPackageNotFoundException(
+                'SCORM package "{}" not found'.format(self.scorm_file)
+            )
         # Since course content names are unique we are sure that we
         # can't have multiple results, so we just pop the first.
         return scorm_content.pop()
@@ -370,7 +368,6 @@ class AbstractScormXBlock(XBlock):
             self._update_scorm_url(scorm_package["md5"])
         else:
             self._scorm_url = ""
-            self._scorm_version = ""
 
     @staticmethod
     def workbench_scenarios():

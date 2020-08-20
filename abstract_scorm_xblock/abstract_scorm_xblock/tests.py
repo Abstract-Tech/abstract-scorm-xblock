@@ -19,10 +19,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         Creates a AbstractScormXBlock for testing purpose.
         """
         field_data = DictFieldData(kwargs)
-        xblock = AbstractScormXBlock(mock.Mock(), field_data, mock.Mock())
-        xblock.location = mock.Mock(
-            block_id="block_id", org="org", course="course", block_type="block_type"
-        )
+        xblock = AbstractScormXBlock(mock.MagicMock(), field_data, mock.MagicMock())
         return xblock
 
     def test_fields_xblock(self):
@@ -43,7 +40,46 @@ class AbstractScormXBlockTests(unittest.TestCase):
         self.assertEqual(xblock._lesson_status, "not attempted")
         self.assertEqual(xblock._success_status, "unknown")
 
-    def test_studio_submit(self):
+    @mock.patch(
+        "abstract_scorm_xblock.scormxblock.contentstore",
+        return_value=mock.Mock(
+            get_all_content_for_course=mock.Mock(return_value=[[], 0])
+        ),
+    )
+    def test_student_view(self, contentstore):
+        xblock = self.make_one()
+        fragment = xblock.student_view()
+
+        self.assertIn(xblock._lesson_status, fragment.body_html())
+        self.assertIn(
+            'lesson_score">{}</span>/{} points'.format(
+                xblock.lesson_score, xblock.weight
+            ),
+            fragment.body_html(),
+        )
+
+    @mock.patch(
+        "abstract_scorm_xblock.scormxblock.contentstore",
+        return_value=mock.Mock(
+            get_all_content_for_course=mock.Mock(return_value=[[], 0])
+        ),
+    )
+    def test_studio_view(self, contentstore):
+        xblock = self.make_one()
+        fragment = xblock.studio_view()
+
+        self.assertIn(xblock.display_name, fragment.body_html())
+        self.assertIn(str(xblock.height), fragment.body_html())
+        self.assertIn("Save", fragment.body_html())
+        self.assertIn("Cancel", fragment.body_html())
+
+    @mock.patch(
+        "abstract_scorm_xblock.scormxblock.contentstore",
+        return_value=mock.Mock(
+            get_all_content_for_course=mock.Mock(return_value=[[], 0])
+        ),
+    )
+    def test_studio_submit(self, contentstore):
         xblock = self.make_one()
 
         fields = {
@@ -53,12 +89,19 @@ class AbstractScormXBlockTests(unittest.TestCase):
             "height": 500,
         }
 
-        xblock.studio_submit(mock.Mock(method="POST", params=fields))
+        response = xblock.studio_submit(mock.Mock(method="POST", params=fields))
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(xblock.display_name, fields["display_name"])
         self.assertEqual(xblock.has_score, fields["has_score"])
         self.assertEqual(xblock.icon_class, "video")
         self.assertEqual(xblock.width, None)
         self.assertEqual(xblock.height, 500)
+        self.assertEqual(xblock._scorm_version, "1.2")
+        self.assertEqual(xblock._scorm_url, "")
+
+        fields = {"scorm_file": "inexistent"}
+        response = xblock.studio_submit(mock.Mock(method="POST", params=fields))
+        self.assertEqual(response.status_code, 404)
 
     @mock.patch(
         "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
@@ -138,7 +181,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
             mock.Mock(method="POST", body=json.dumps(value))
         )
 
-        _get_completion_status.assert_called_once_with()
+        _get_completion_status.assert_called_once()
 
         self.assertEqual(xblock._scorm_data[value["name"]], value["value"])
 
