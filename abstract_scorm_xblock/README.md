@@ -58,11 +58,22 @@ In order to be able to develop and debug effectively some steps may be taken:
 
 ### Running tests
 
-Tests can be run from the derex project directory by running:
+Tests can be run with:
 
     ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb
 
 The first time this command is run it will initialize the test database. Remove the `--keepdb` flag if you want the test database to be created/destroyed each time.
+
+To run a coverage report:
+
+    ddc-project run -e COVERAGE_RCFILE=../derex.requirements/abstract_scorm_xblock/.coveragerc --rm lms sh -c "coverage run manage.py lms test abstract_scorm_xblock --keepdb && coverage html"
+
+This will produce an HTML coverage report in the `abstract_scorm_xblock/htmlcov` directory.
+
+You can also use the Makefile shortcuts:
+
+    make test
+    make coverage
 
 ## Caveats
 

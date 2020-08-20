@@ -1,1 +1,2 @@
 -e ./abstract_scorm_xblock
+coverage

@@ -15,6 +15,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=["abstract_scorm_xblock"],
     install_requires=["XBlock"],
+    tests_require=["coverage"],
     include_package_data=True,
     keywords=["scorm", "xblock"],
     author="Alexander Marenich, Andrey Kryachko, Andrey Lykhoman, COTOHA, David Baumgold, Volodymyr Bergman, Maxim Starodubcev, Jorge Mora, Silvio Tomatis, kirkerafael, Oksana Slusarenro, Chiruzzi Marco",
