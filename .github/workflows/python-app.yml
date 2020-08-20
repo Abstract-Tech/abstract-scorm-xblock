@@ -38,5 +38,4 @@ jobs:
           derex build final
       - name: Run tests
         run: |
-          cd derex_project
-          ddc-project run --rm lms python manage.py lms test abstract_scorm_xblock --keepdb
+          make coverage
