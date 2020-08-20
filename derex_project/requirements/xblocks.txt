@@ -1,2 +1,2 @@
 -e ./abstract_scorm_xblock
-coverage==5.2.1
+coverage
