@@ -337,7 +337,10 @@ class AbstractScormXBlock(XBlock):
         Extracts the SCORM package to the default storage if needed
         """
         scorm_path = os.path.join(settings.STORAGE_SCORM_PATH, scorm_package["md5"])
-        if not default_storage.exists(scorm_path):
+
+        try:
+            self._read_scorm_manifest(scorm_path)
+        except ScormManifestNotFoundException:
             # We are actually loading the whole zipfile in memory.
             # This step should probably be handled more carefully.
             scorm_zipfile_data = contentstore().find(scorm_package["asset_key"]).data
