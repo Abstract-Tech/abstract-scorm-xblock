@@ -346,6 +346,8 @@ class AbstractScormXBlock(XBlock):
                 # ZipFile does not provide a seek method till python 3.7
                 # https://bugs.python.org/issue22908
                 for filename in zipfile_obj.namelist():
+                    if filename.endswith("/"):
+                        continue
                     default_storage.save(
                         os.path.join(
                             settings.STORAGE_SCORM_PATH, scorm_package["md5"], filename
