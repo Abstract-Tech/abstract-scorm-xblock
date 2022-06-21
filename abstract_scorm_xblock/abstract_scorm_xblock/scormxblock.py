@@ -320,11 +320,11 @@ class AbstractScormXBlock(XBlock):
         scorm_content, count = contentstore().get_all_content_for_course(
             self.runtime.course_id,
             filter_params={
-                "contentType": "application/zip",
-                "displayname": self.scorm_file,
+                "displayname": self.scorm_file
             },
         )
-        if not count:
+        zip_mimetypes = {'application/x-zip-compressed', 'application/zip'}
+        if not count or scorm_content[0]['contentType'] not in zip_mimetypes:
             raise ScormPackageNotFoundException(
                 'SCORM package "{}" not found'.format(self.scorm_file)
             )
@@ -337,7 +337,10 @@ class AbstractScormXBlock(XBlock):
         Extracts the SCORM package to the default storage if needed
         """
         scorm_path = os.path.join(settings.STORAGE_SCORM_PATH, scorm_package["md5"])
-        if not default_storage.exists(scorm_path):
+
+        try:
+            self._read_scorm_manifest(scorm_path)
+        except ScormManifestNotFoundException:
             # We are actually loading the whole zipfile in memory.
             # This step should probably be handled more carefully.
             scorm_zipfile_data = contentstore().find(scorm_package["asset_key"]).data
@@ -346,6 +349,8 @@ class AbstractScormXBlock(XBlock):
                 # ZipFile does not provide a seek method till python 3.7
                 # https://bugs.python.org/issue22908
                 for filename in zipfile_obj.namelist():
+                    if filename.endswith("/"):
+                        continue
                     default_storage.save(
                         os.path.join(
                             settings.STORAGE_SCORM_PATH, scorm_package["md5"], filename
