@@ -117,7 +117,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         xblock = self.make_one(has_score=True)
 
         response = xblock.scorm_set_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
         _publish_grade.assert_called_once_with()
@@ -149,7 +149,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         xblock = self.make_one(has_score=True)
 
         response = xblock.scorm_set_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
         _get_completion_status.assert_called_once_with()
@@ -178,7 +178,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         xblock = self.make_one(has_score=True)
 
         response = xblock.scorm_set_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
         _get_completion_status.assert_called_once()
@@ -199,7 +199,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         xblock = self.make_one(_lesson_status="status", _success_status="status")
 
         response = xblock.scorm_get_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
         self.assertEqual(response.json, {"value": "status"})
@@ -212,7 +212,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         xblock = self.make_one(lesson_score=0.2)
 
         response = xblock.scorm_get_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
         self.assertEqual(response.json, {"value": 20})
@@ -232,7 +232,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
         response = xblock.scorm_get_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
         self.assertEqual(response.json, {"value": xblock._scorm_data[value["name"]]})
