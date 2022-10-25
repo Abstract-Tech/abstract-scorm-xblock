@@ -111,6 +111,12 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
     _success_status = String(scope=Scope.user_state, default="unknown")
     _scorm_data = Dict(scope=Scope.user_state, default={})
 
+    @property
+    def lesson_score_display(self):
+        if self.has_score and self.lesson_score == self.weight:
+            return int(self.weight)
+        return round(self.lesson_score, 2)
+
     def student_view(self, context={}):
         # TODO: We should be able to display an error message
         # instead of trying to render an inexistent or problematic
@@ -132,6 +138,7 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
         js_settings = {
             "scorm_version": self._scorm_version,
             "scorm_url": self._scorm_url,
+            "scorm_data": self._scorm_data,
             "completion_status": self.get_lesson_status(),
             "scorm_xblock": {
                 "display_name": self.display_name,
@@ -229,7 +236,7 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
             return {"value": self._lesson_status}
         elif name == "cmi.success_status":
             return {"value": self._success_status}
-        elif name in ["cmi.core.score.raw", "cmi.score.raw"]:
+        elif name in ["cmi.core.score.raw", "cmi.score.raw", "cmi.score.scaled"]:
             return {"value": self.lesson_score * 100}
         elif name in ["cmi.core.student_id", "cmi.learner_id"]:
             return {"value": self.get_current_user_attr("edx-platform.user_id")}
@@ -260,8 +267,11 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
             success_status = value
         elif name == "cmi.completion_status":
             completion_status = value
-        elif name in ["cmi.core.score.raw", "cmi.score.raw"] and self.has_score:
-            lesson_score = float(value) / 100.0
+        elif (
+            name in ["cmi.core.score.raw", "cmi.score.raw", "cmi.score.scaled"]
+            and self.has_score
+        ):
+            lesson_score = float(value) / 100
         elif name == "cmi.progress_measure":
             completion_percent = float(value)
 

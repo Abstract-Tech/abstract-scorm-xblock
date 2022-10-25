@@ -3,7 +3,7 @@
 <div class="scormxblock_block" id="scormxblock_{{ scorm_xblock.url_name }}">
     {% if scorm_xblock.has_score %}
     <p class="scormxblock_score">
-        (<span class="lesson_score">{{ scorm_xblock.lesson_score }}</span>/{{ scorm_xblock.weight }} {% trans "points" %})
+        (<span class="lesson_score">{{ scorm_xblock.lesson_score_display }}</span>/{{ scorm_xblock.weight }} {% trans "points" %})
         <span class="scormxblock_completion completion_status">{% trans completion_status %}</span>
     </p>
     {% endif %}

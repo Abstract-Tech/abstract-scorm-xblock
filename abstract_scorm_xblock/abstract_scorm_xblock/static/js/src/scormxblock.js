@@ -58,12 +58,21 @@ function ScormXBlock(runtime, element, settings) {
   }
 
   var GetValue = function (cmi_element) {
-    return $.ajax({
+    var response = $.ajax({
       type: "POST",
       url: runtime.handlerUrl(element, "scorm_get_value"),
       data: JSON.stringify({ name: cmi_element }),
       async: false,
-    }).responseText;
+    });
+
+    response = JSON.parse(response.responseText);
+    if (!response.value && cmi_element in settings.scorm_data) {
+      if ([undefined, null].includes(settings.scorm_data[cmi_element])) {
+        return "";
+      }
+      return settings.scorm_data[cmi_element];
+    }
+    return response.value;
   };
 
   var SetValue = function (cmi_element, value) {
@@ -74,11 +83,12 @@ function ScormXBlock(runtime, element, settings) {
       async: true,
       success: function (response) {
         if (typeof response.lesson_score != "undefined") {
-          $(".lesson_score", element).html(response.lesson_score);
+          $(".lesson_score", element).html(response.lesson_score.toFixed(2));
         }
         $(".completion_status", element).html(response.completion_status);
       },
     });
+    return "true";
   };
 
   var GetAPI = function () {
