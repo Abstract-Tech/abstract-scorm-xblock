@@ -319,12 +319,10 @@ class AbstractScormXBlock(XBlock):
     def _search_scorm_package(self):
         scorm_content, count = contentstore().get_all_content_for_course(
             self.runtime.course_id,
-            filter_params={
-                "displayname": self.scorm_file
-            },
+            filter_params={"displayname": self.scorm_file},
         )
-        zip_mimetypes = {'application/x-zip-compressed', 'application/zip'}
-        if not count or scorm_content[0]['contentType'] not in zip_mimetypes:
+        zip_mimetypes = {"application/x-zip-compressed", "application/zip"}
+        if not count or scorm_content[0]["contentType"] not in zip_mimetypes:
             raise ScormPackageNotFoundException(
                 'SCORM package "{}" not found'.format(self.scorm_file)
             )
