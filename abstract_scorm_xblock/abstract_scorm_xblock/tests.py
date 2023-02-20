@@ -205,7 +205,8 @@ class AbstractScormXBlockTests(unittest.TestCase):
         self.assertEqual(response.json, {"value": "status"})
 
     @ddt.data(
-        {"name": "cmi.core.score.raw"}, {"name": "cmi.score.raw"},
+        {"name": "cmi.core.score.raw"},
+        {"name": "cmi.score.raw"},
     )
     def test_scorm_get_lesson_score(self, value):
         xblock = self.make_one(lesson_score=0.2)
