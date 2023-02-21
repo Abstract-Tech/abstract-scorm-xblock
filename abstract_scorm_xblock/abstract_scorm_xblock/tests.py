@@ -104,7 +104,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     @mock.patch(
-        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
+        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock.get_lesson_status",
         return_value="completion_status",
     )
     @mock.patch("abstract_scorm_xblock.scormxblock.AbstractScormXBlock._publish_grade")
@@ -113,7 +113,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         {"name": "cmi.completion_status", "value": "failed"},
         {"name": "cmi.success_status", "value": "unknown"},
     )
-    def test_set_status(self, value, _publish_grade, _get_completion_status):
+    def test_set_status(self, value, _publish_grade, get_lesson_status):
         xblock = self.make_one(has_score=True)
 
         response = xblock.scorm_set_value(
@@ -121,7 +121,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
         _publish_grade.assert_called_once_with()
-        _get_completion_status.assert_called_once_with()
+        get_lesson_status.assert_called_once_with()
 
         if value["name"] == "cmi.success_status":
             self.assertEqual(xblock._success_status, value["value"])
@@ -138,21 +138,21 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
+        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock.get_lesson_status",
         return_value="completion_status",
     )
     @ddt.data(
         {"name": "cmi.core.score.raw", "value": "20"},
         {"name": "cmi.score.raw", "value": "20"},
     )
-    def test_set_lesson_score(self, value, _get_completion_status):
+    def test_set_lesson_score(self, value, get_lesson_status):
         xblock = self.make_one(has_score=True)
 
         response = xblock.scorm_set_value(
             mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
-        _get_completion_status.assert_called_once_with()
+        get_lesson_status.assert_called_once_with()
 
         self.assertEqual(xblock.lesson_score, 0.2)
 
@@ -166,7 +166,7 @@ class AbstractScormXBlockTests(unittest.TestCase):
         )
 
     @mock.patch(
-        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock._get_completion_status",
+        "abstract_scorm_xblock.scormxblock.AbstractScormXBlock.get_lesson_status",
         return_value="completion_status",
     )
     @ddt.data(
@@ -174,14 +174,14 @@ class AbstractScormXBlockTests(unittest.TestCase):
         {"name": "cmi.location", "value": 2},
         {"name": "cmi.suspend_data", "value": [1, 2]},
     )
-    def test_set_other_scorm_values(self, value, _get_completion_status):
+    def test_set_other_scorm_values(self, value, get_lesson_status):
         xblock = self.make_one(has_score=True)
 
         response = xblock.scorm_set_value(
             mock.Mock(method="POST", body=json.dumps(value).encode("utf-8"))
         )
 
-        _get_completion_status.assert_called_once()
+        get_lesson_status.assert_called_once()
 
         self.assertEqual(xblock._scorm_data[value["name"]], value["value"])
 
