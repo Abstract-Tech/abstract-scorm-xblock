@@ -109,6 +109,22 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
     # save completion_status for SCORM_2004
     _lesson_status = String(scope=Scope.user_state, default="not attempted")
     _success_status = String(scope=Scope.user_state, default="unknown")
+
+    """
+    Fields description from
+    https://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/ :
+
+    * cmi.learner_id (long_identifier_type (SPM: 4000), RO) Identifies the learner on behalf of whom the SCO was launched
+    * cmi.location (characterstring (SPM: 1000), RW) The learner's current location in the SCO
+    * cmi.suspend_data (characterstring (SPM: 4000), RW) Provides space to store and retrieve data between learner sessions
+    * cmi.completion_status (“completed”, “incomplete”, “not attempted”, “unknown”, RW) Indicates whether the learner has completed the SCO
+    * cmi.completion_threshold (real(10,7) range (0..1), RO) Used to determine whether the SCO should be considered complete
+    * cmi.success_status (“passed”, “failed”, “unknown”, RW) Indicates whether the learner has mastered the SCO
+    * cmi.score.scaled (real (10,7) range (-1..1), RW) Number that reflects the performance of the learner
+    * cmi.score.raw (real (10,7), RW) Number that reflects the performance of the learner relative to the range bounded by the values of min and max
+    * cmi.score.min (real (10,7), RW) Minimum value in the range for the raw score
+    * cmi.score.max (real (10,7), RW) Maximum value in the range for the raw score
+    """
     _scorm_data = Dict(scope=Scope.user_state, default={})
 
     @property
@@ -245,11 +261,37 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
         else:
             return {"value": self._scorm_data.get(name, "")}
 
+    def get_payload(
+        self,
+        lesson_score,
+        lesson_status,
+        success_status,
+        completion_status,
+    ):
+        payload = {"result": "success"}
+        if lesson_score:
+            self.lesson_score = lesson_score
+            if success_status in ["failed", "unknown"]:
+                lesson_score = 0
+            else:
+                lesson_score = lesson_score * self.weight
+            payload.update({"lesson_score": lesson_score})
+
+        if lesson_status:
+            self._lesson_status = lesson_status
+            payload.update({"completion_status": lesson_status})
+
+        if completion_status:
+            self.completion_status = completion_status
+            payload.update({"completion_status": completion_status})
+
+        return payload
+
     @XBlock.json_handler
     def scorm_set_value(self, data, suffix=""):
-        payload = {"result": "success"}
         name = data.get("name")
         value = data.get("value")
+
         lesson_score = None
         lesson_status = None
         success_status = None
@@ -257,6 +299,7 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
         completion_percent = None
 
         self._scorm_data[name] = value
+
         if name in ["cmi.core.lesson_status", "cmi.completion_status"]:
             lesson_status = value
             if lesson_status in ["passed", "failed"]:
@@ -275,30 +318,21 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
         elif name == "cmi.progress_measure":
             completion_percent = float(value)
 
-        payload = {"result": "success"}
-        if lesson_score is not None:
-            self.lesson_score = lesson_score
-            if success_status in ["failed", "unknown"]:
-                lesson_score = 0
-            else:
-                lesson_score = lesson_score * self.weight
-            payload.update({"lesson_score": lesson_score})
-        if lesson_status:
-            self._lesson_status = lesson_status
-            payload.update({"completion_status": lesson_status})
-        if completion_percent is not None:
-            self.emit_completion(completion_percent)
-        if completion_status:
-            self.completion_status = completion_status
-            payload.update({"completion_status": completion_status})
-        if success_status:
-            self._success_status = success_status
         if completion_status == "completed":
             self.emit_completion(1)
+        if completion_percent:
+            self.emit_completion(completion_percent)
+
         if success_status or completion_status == "completed":
             if self.has_score:
                 self._publish_grade()
-        return payload
+
+        return self.get_payload(
+            lesson_score,
+            lesson_status,
+            success_status,
+            completion_status,
+        )
 
     def set_score(self, score):
         """
@@ -329,8 +363,6 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
             and self._success_status != "unknown"
         ):
             lesson_status = self._success_status
-        if not lesson_status:
-            lesson_status = "unknown"
         return lesson_status
 
     def _read_scorm_manifest(self, scorm_path):
