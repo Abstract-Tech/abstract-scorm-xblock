@@ -35,7 +35,8 @@ jobs:
           derex reset-rabbitmq
           # We can't use `derex create-bucket` because github CI doesn't allocate a TTY
           docker run --rm --network derex --entrypoint /bin/sh minio/mc -c 'mc config host add local http://minio:80 minio_derex "ICDTE0ZnlbIR7r6/qE81nkF7Kshc2gXYv6fJR4I/HKPeTbxEeB3nxC85Ne6C844hEaaC2+KHBRIOzGou9leulZ7t" --api s3v4; set -ex; mc mb --ignore-existing local/scorm; mc policy set download local/scorm/profile-images'
-          derex build final
+          derex settings base
+          derex build project
       - name: Run tests
         run: |
           make coverage
