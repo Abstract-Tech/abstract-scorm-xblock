@@ -3,13 +3,14 @@ import mimetypes
 import os
 import posixpath
 
+from urllib.parse import unquote
+
 from django.conf import settings
 from django.http import FileResponse, Http404
 
 from django.utils.http import http_date
-from django.utils.six.moves.urllib.parse import unquote
 from django.core.files.storage import default_storage
-from django.conf.urls import url
+from django.urls import re_path
 
 
 def scormxblock_serve(request, md5, path):
@@ -36,5 +37,5 @@ def scormxblock_serve(request, md5, path):
 
 
 urlpatterns = [
-    url(r"(?P<md5>[a-f0-9]{32})/(?P<path>.*)$", scormxblock_serve, name="scorm_serve")
+    re_path(r"(?P<md5>[a-f0-9]{32})/(?P<path>.*)$", scormxblock_serve, name="scorm_serve")
 ]
