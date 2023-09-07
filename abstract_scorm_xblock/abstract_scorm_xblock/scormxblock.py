@@ -255,9 +255,9 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
         elif name in ["cmi.core.score.raw", "cmi.score.raw", "cmi.score.scaled"]:
             return {"value": self.lesson_score * 100}
         elif name in ["cmi.core.student_id", "cmi.learner_id"]:
-            return {"value": self.get_current_user_attr("edx-platform.user_id")}
+            return {"value": self.get_current_user_attributes("edx-platform.user_id")}
         elif name in ["cmi.core.student_name", "cmi.learner_name"]:
-            return {"value": self.get_current_user_attr("edx-platform.username")}
+            return {"value": self.get_current_user_attributes("edx-platform.username")}
         else:
             return {"value": self._scorm_data.get(name, "")}
 
