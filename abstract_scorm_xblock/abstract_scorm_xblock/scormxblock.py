@@ -27,6 +27,7 @@ from .exceptions import ScormManifestNotFoundException, ScormPackageNotFoundExce
 logger = logging.getLogger(__name__)
 
 
+@XBlock.wants("user")
 class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
     display_name = String(
         display_name=_("Display Name"),
