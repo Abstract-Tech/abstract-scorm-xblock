@@ -84,3 +84,6 @@ msgstr "Otwarcie w miejscu"
 
 msgid "Show button for opening not-in-popup."
 msgstr "Pokaż przycisk pozwalający na otwarcie nie-w-popupie."
+
+msgid "passed"
+msgstr "зачёт"
