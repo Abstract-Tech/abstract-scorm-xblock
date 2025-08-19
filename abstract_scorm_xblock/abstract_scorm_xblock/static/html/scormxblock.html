@@ -4,7 +4,10 @@
     {% if scorm_xblock.has_score %}
     <p class="scormxblock_score">
         (<span class="lesson_score">{{ scorm_xblock.lesson_score_display }}</span>/{{ scorm_xblock.weight }} {% trans "points" %})
-        <span class="scormxblock_completion completion_status">{% trans completion_status %}</span>
+        <span class="scormblock_completion completion_status"
+            data-status="{{ completion_status }}">
+              {{ completion_status_label }}
+        </span>
     </p>
     {% endif %}
 

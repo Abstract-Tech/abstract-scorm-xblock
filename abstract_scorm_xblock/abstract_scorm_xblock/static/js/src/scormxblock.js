@@ -82,10 +82,11 @@ function ScormXBlock(runtime, element, settings) {
       data: JSON.stringify({ name: cmi_element, value: value }),
       async: true,
       success: function (response) {
-        if (typeof response.lesson_score != "undefined") {
+        if (typeof response.lesson_score !== "undefined") {
           $(".lesson_score", element).html(response.lesson_score.toFixed(2));
         }
-        $(".completion_status", element).html(response.completion_status);
+        var label = response.completion_status_label || response.completion_status || "";
+        $(".completion_status", element).text(label);
       },
     });
     return "true";

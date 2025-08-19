@@ -127,6 +127,15 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
     """
     _scorm_data = Dict(scope=Scope.user_state, default={})
 
+    # --- NEW: helper to return a translated label for any status value -----------
+    def _status_label(self, status):
+        """
+        Returns a translated, human-readable label for a SCORM status string.
+        The msgid is the raw status value (e.g., 'passed', 'failed', ...).
+        """
+        return _(status) if status else ""
+    # ---------------------------------------------------------------------------
+
     @property
     def lesson_score_display(self):
         if self.has_score and self.lesson_score == self.weight:
@@ -144,18 +153,29 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
         except ScormPackageNotFoundException as e:
             logger.warning(e)
 
+        # --- changed: compute label and pass both raw + label to template -------
+        status = self.get_lesson_status()
         template = render_template(
             "static/html/scormxblock.html",
-            {"completion_status": self.get_lesson_status(), "scorm_xblock": self},
+            {
+                "completion_status": status,
+                "completion_status_label": self._status_label(status),
+                "scorm_xblock": self,
+            },
         )
+        # ------------------------------------------------------------------------
+
         fragment = Fragment(template)
         fragment.add_css(resource_string("static/css/scormxblock.css"))
         fragment.add_javascript(resource_string("static/js/src/scormxblock.js"))
+
+        # --- changed: include label in JS settings so client updates stay translated
         js_settings = {
             "scorm_version": self._scorm_version,
             "scorm_url": self._scorm_url,
             "scorm_data": self._scorm_data,
-            "completion_status": self.get_lesson_status(),
+            "completion_status": status,
+            "completion_status_label": self._status_label(status),
             "scorm_xblock": {
                 "display_name": self.display_name,
                 "width": self.width,
@@ -165,6 +185,8 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
                 "allowopeninplace": self.allowopeninplace,
             },
         }
+        # ------------------------------------------------------------------------
+
         fragment.initialize_js("ScormXBlock", json_args=js_settings)
         return fragment
 
@@ -279,11 +301,19 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
 
         if lesson_status:
             self._lesson_status = lesson_status
-            payload.update({"completion_status": lesson_status})
+            payload.update({
+                "completion_status": lesson_status,
+                # --- NEW: include translated label for client-side display
+                "completion_status_label": self._status_label(lesson_status),
+            })
 
         if completion_status:
             self.completion_status = completion_status
-            payload.update({"completion_status": completion_status})
+            payload.update({
+                "completion_status": completion_status,
+                # --- NEW: include translated label for client-side display
+                "completion_status_label": self._status_label(completion_status),
+            })
 
         return payload
 
