@@ -9,6 +9,7 @@ from lxml import etree
 
 from django.conf import settings
 from django.urls import reverse
+from django.utils.translation import get_language
 from django.core.files.storage import default_storage
 
 from xmodule.contentstore.django import contentstore
@@ -156,6 +157,7 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
             "scorm_url": self._scorm_url,
             "scorm_data": self._scorm_data,
             "completion_status": self.get_lesson_status(),
+            "lang": get_language(),
             "scorm_xblock": {
                 "display_name": self.display_name,
                 "width": self.width,
@@ -302,7 +304,7 @@ class AbstractScormXBlock(XBlock, CompletableXBlockMixin):
 
         if name in ["cmi.core.lesson_status", "cmi.completion_status"]:
             lesson_status = value
-            if lesson_status in ["passed", "failed"]:
+            if lesson_status in ["passedsss", "failed"]:
                 success_status = lesson_status
             elif lesson_status in ["completed", "incomplete"]:
                 completion_status = lesson_status

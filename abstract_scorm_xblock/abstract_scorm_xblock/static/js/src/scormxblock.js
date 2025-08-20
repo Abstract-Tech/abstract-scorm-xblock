@@ -1,4 +1,73 @@
 function ScormXBlock(runtime, element, settings) {
+  // ✅ Translation table
+  const STATUS_TRANSLATIONS = {
+    en: {
+      passed: "passed",
+      failed: "failed",
+      "not attempted": "not attempted",
+      incomplete: "incomplete",
+      completed: "completed",
+      unknown: "unknown",
+    },
+    es: {
+      passed: "aprobado",
+      failed: "reprobado",
+      "not attempted": "no intentado",
+      incomplete: "incompleto",
+      completed: "completado",
+      unknown: "desconocido",
+    },
+    ru: {
+      passed: "зачёт",
+      failed: "не зачет",
+      "not attempted": "не начато",
+      incomplete: "не завершено",
+      completed: "завершено",
+      unknown: "неизвестно",
+    },
+    pt: {
+      passed: "aprovado",
+      failed: "reprovado",
+      "not attempted": "não tentado",
+      incomplete: "incompleto",
+      completed: "concluído",
+      unknown: "desconhecido",
+    },
+    id: {
+    passed: "lulus",
+    failed: "gagal",
+    "not attempted": "belum dicoba",
+    incomplete: "tidak lengkap",
+    completed: "selesai",
+    unknown: "tidak diketahui",
+  },
+    zh: {
+    passed: "通过",
+    failed: "未通过",
+    "not attempted": "未尝试",
+    incomplete: "未完成",
+    completed: "已完成",
+    unknown: "未知",
+  },
+
+  };
+
+  function normalizeLang(lang) {
+    if (!lang) return "en";
+    const short = lang.split("-")[0].toLowerCase();
+    return STATUS_TRANSLATIONS[short] ? short : "en";
+  }
+
+  function translateStatus(status) {
+    const lang = normalizeLang(settings.lang || "en");
+    return STATUS_TRANSLATIONS[lang]?.[status?.trim()?.toLowerCase()] || status;
+  }
+
+  function injectInitialTranslation() {
+    const raw = $(".completion_status", element).text().trim();
+    $(".completion_status", element).text(translateStatus(raw));
+  }
+
   function SCORM_12_API() {
     this.LMSInitialize = function () {
       return "true";
@@ -85,7 +154,11 @@ function ScormXBlock(runtime, element, settings) {
         if (typeof response.lesson_score != "undefined") {
           $(".lesson_score", element).html(response.lesson_score.toFixed(2));
         }
-        $(".completion_status", element).html(response.completion_status);
+        // ✅ apply translation here
+        if (response.completion_status) {
+          const translated = translateStatus(response.completion_status);
+          $(".completion_status", element).html(translated);
+        }
       },
     });
     return "true";
@@ -102,6 +175,8 @@ function ScormXBlock(runtime, element, settings) {
   };
 
   $(function ($) {
+    injectInitialTranslation(); // ✅ apply translation on page load
+
     let width = settings.scorm_xblock.width
       ? settings.scorm_xblock.width
       : screen.height;
@@ -211,6 +286,7 @@ function ScormXBlock(runtime, element, settings) {
       iframe.document.write(innerIframe);
       iframe.document.close();
     }
+
     var params =
       "width=" +
       (width + 5) +
@@ -221,11 +297,13 @@ function ScormXBlock(runtime, element, settings) {
       ",left=" +
       (screen.width - width) / 2 +
       ",resizable=yes,scrollbars=no,status=yes";
+
     if (settings.scorm_xblock.popup && settings.scorm_xblock.autoopen) {
       showPopup(params);
     } else if (!settings.scorm_xblock.popup) {
       showIframe();
     }
+
     $(".scorm_launch", element).on("click", function () {
       showPopup(params);
     });

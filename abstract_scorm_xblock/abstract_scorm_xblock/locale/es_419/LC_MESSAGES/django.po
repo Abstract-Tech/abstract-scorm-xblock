@@ -54,4 +54,16 @@ msgid "Look in LMS"
 msgstr "Ver en LMS"
 
 msgid "passed"
-msgstr "зачёт"
+msgstr "aprobado"
+
+msgid "not attempted"
+msgstr "no intentado"
+
+msgid "completed"
+msgstr "completado"
+
+msgid "failed"
+msgstr "reprobado"
+
+msgid "unknown"
+msgstr "desconocido"
