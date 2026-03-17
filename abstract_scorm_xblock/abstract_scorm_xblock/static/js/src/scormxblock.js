@@ -25,6 +25,14 @@ function ScormXBlock(runtime, element, settings) {
       completed: "завершено",
       unknown: "неизвестно",
     },
+    uk: {
+      passed: "зараховано",
+      failed: "не зараховано",
+      "not attempted": "не розпочато",
+      incomplete: "незавершено",
+      completed: "завершено",
+      unknown: "невідомо",
+    },
     pt: {
       passed: "aprovado",
       failed: "reprovado",
